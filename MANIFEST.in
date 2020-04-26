@@ -1,0 +1,4 @@
+include README.md
+recursive-include octoprint_signalclirestapi/templates *
+recursive-include octoprint_signalclirestapi/translations *
+recursive-include octoprint_signalclirestapi/static *
