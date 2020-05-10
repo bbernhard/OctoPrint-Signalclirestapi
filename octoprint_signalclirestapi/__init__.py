@@ -11,19 +11,79 @@ from __future__ import absolute_import
 # Take a look at the documentation on what other plugin mixins are available.
 
 import octoprint.plugin
+import octoprint.util
 import flask
 from pysignalclirestapi import SignalCliRestApi
+from datetime import datetime, timedelta
+import urllib.request
+import tempfile
+import socket
+import getpass
 
+
+def verify_connection_settings(url, sender_nr, recipients):
+    if url is None or url == "":
+        raise Exception("REST API URL needs to be set")
+    if sender_nr is None or sender_nr == "":
+        raise Exception("Sender Number needs to be set")
+    if recipients is None or recipients == "":
+        raise Exception("Please provide at least one recipient") 
+
+
+def create_group(url, sender_nr, members, name):
+    api = SignalCliRestApi(url, sender_nr) 
+    group_id = api.create_group(name, members)
+    return group_id
+
+def send_message(url, sender_nr, message, recipients, filenames=[]):
+    verify_connection_settings(url, sender_nr, recipients) 
+
+    api = SignalCliRestApi(url, sender_nr)
+    api.send_message(message, recipients, filenames=filenames)
+
+def get_webcam_snapshot(snapshot_url): 
+    filename, _ = urllib.request.urlretrieve(snapshot_url, tempfile.gettempdir()+"/snapshot.jpg")
+    return filename
+
+def get_supported_tags():
+    return {
+                "filename": None,
+                "elapsed_time": None,
+                "host": socket.gethostname(),
+                "user": getpass.getuser(),
+                "progress": None
+           }
 
 class SignalclirestapiPlugin(octoprint.plugin.SettingsPlugin,
                              octoprint.plugin.AssetPlugin,
                              octoprint.plugin.SimpleApiPlugin,
-                             octoprint.plugin.TemplatePlugin):
+                             octoprint.plugin.TemplatePlugin,
+                             octoprint.plugin.EventHandlerPlugin,
+                             octoprint.plugin.ProgressPlugin):
 
+    def __init__(self):
+        self._group_id = None 
+    
     # ~~ SettingsPlugin mixin
 
+    def on_print_progress(self, storage, path, progress):
+        if self.enabled and self.send_print_progress:
+            supported_tags = get_supported_tags()
+            supported_tags["progress"] = progress
+            supported_tags["filename"] = path
+            message = self.send_print_progress_template.format(**supported_tags)
+            
+            if progress == 20:
+                self._send_message(message)
+            elif progress == 40:
+                self._send_message(message)
+            elif progress == 60:
+                self._send_message(message)
+            elif progress == 80:
+                self._send_message(message)
+
+
     def get_api_commands(self):
-        self._logger.info("Manually triggered get_api")
         return dict(testMessage=["sender", "recipients", "url"]);
 
     def get_settings_defaults(self):
@@ -37,113 +97,216 @@ class SignalclirestapiPlugin(octoprint.plugin.SettingsPlugin,
             printfailedevent=True,
             printcancelledevent=True,
             printpausedevent=True,
+            printresumedevent=True,
+            printstartedeventtemplate="OctoPrint@{host}: {filename}: Job started.",
             printdoneeventtemplate="OctoPrint@{host}: {filename}: Job complete after {elapsed_time}.",
             printpausedeventtemplate="OctoPrint@{host}: {filename}: Job paused!",
-            printfailedeventtemplate="OctoPrint@{host}: {filename}: Job failed after {elapsed_time} ({reason})!",
+            printfailedeventtemplate="OctoPrint@{host}: {filename}: Job failed after {elapsed_time} ({reason})!", 
+            printcancelledeventtemplate="OctoPrint@{host}: {filename}: Job cancelled after {elapsed_time}!",
+            printresumedeventtemplate="OctoPrint@{host}: {filename}: Job resumed!",
             attachsnapshots=False,
-            creategroupforeveryprint=True
-        )
-
-    def _verify_connection_settings(self, url, sender_nr, recipients):
-        if url is None or url == "":
-            raise Exception("REST API URL needs to be set")
-        if sender_nr is None or sender_nr == "":
-            raise Exception("Sender Number needs to be set")
-        if recipients is None or recipients == "":
-            raise Exception("Please provide at least one recipient")   
-
-    def _send_test_message(self, url, sender_nr, recipients, message):
-        self._verify_connection_settings(url, sender_nr, recipients) 
-        
-        api = SignalCliRestApi(url, sender_nr)
-        api.send_message(message, recipients.split(","))
-
-    def _send_message(self, message):
-        try:
-            self._verify_connection_settings(self.url, self.sender, self.recipients) 
-
-            api = SignalCliRestApi(url, sender_nr)
-            api.send_message(message, recipients.split(","))
-        except Exception as e:
-            self._logger.error("Couldn't send signal message: %s" %str(e))
+            creategroupforeveryprint=True,
+            sendprintprogress=True,
+            sendprintprogresstemplate="OctoPrint@{host}: {filename}: Progess: {progress}%"
+        ) 
         
     @property
     def enabled(self):
-       return self._settings.get("enabled")
+       return self._settings.get_boolean(["enabled"])
 
     @property
     def url(self):
-        return self._settings.get("url")
+        return self._settings.get(["url"])
     
     @property
     def sender(self):
-        return self._settings.get("sendernr")
+        return self._settings.get(["sendernr"])
     
     @property
     def recipients(self):
-        return self._settings.get("recipientsnrs").split(",")
+        return self._settings.get(["recipientnrs"]).split(",")
 
     @property
     def print_done_event(self):
-        return self._settings.get("printdoneevent")
+        return self._settings.get_boolean(["printdoneevent"])
 
     @property
     def print_started_event(self):
-        return self._settings.get("printstartedevent")
+        return self._settings.get_boolean(["printstartedevent"])
         
     @property
     def print_failed_event(self):
-        return self._settings.get("printfailedevent")
+        return self._settings.get_boolean(["printfailedevent"])
     
     @property
     def print_paused_event(self):
-        return self._settings.get("printpausedevent")
+        return self._settings.get_boolean(["printpausedevent"])
     
     @property
     def print_cancelled_event(self):
-        return self._settings.get("printcancelledevent")
+        return self._settings.get_boolean(["printcancelledevent"])
+
+    @property
+    def print_resumed_event(self):
+        return self._settings.get_boolean(["printresumedevent"])
+
+    @property
+    def create_group_for_every_print(self):
+        return self._settings.get_boolean(["creategroupforeveryprint"])
+
+    @property
+    def attach_snapshots(self):
+        return self._settings.get_boolean(["attachsnapshots"])
+
+    @property
+    def send_print_progress(self):
+        return self._settings.get_boolean(["sendprintprogress"])
+
+    @property
+    def send_print_progress_template(self):
+        return self._settings.get(["sendprintprogresstemplate"])
+
+    @property
+    def print_started_event_template(self):
+        return self._settings.get(["printstartedeventtemplate"])
+
+    @property
+    def print_paused_event_template(self):
+        return self._settings.get(["printpausedeventtemplate"])
+
+    @property
+    def print_cancelled_event_template(self):
+        return self._settings.get(["printcancelledeventtemplate"])
+
+    @property
+    def print_done_event_template(self):
+        return self._settings.get(["printdoneeventtemplate"])
+
+    @property
+    def print_resumed_event_template(self):
+        return self._settings.get(["printresumedeventtemplate"])
+
+    @property
+    def print_failed_event_template(self):
+        return self._settings.get(["printfailedeventtemplate"])
+        
+
+    def _create_group_if_not_exists(self):
+        if self._group_id is None:
+            try:
+                group_name = "Print " + str(datetime.now())
+                self._group_id = create_group(self.url, self.sender, self.recipients, group_name) 
+            except Exception as e:
+                self._logger.exception("Couldn't create signal group")
+
+    def _send_message(self, message):
+        try:
+            recipients = self.recipients
+            if self.create_group_for_every_print:
+                if self._group_id is None:
+                    self._logger.error("Couldn't send message %s as group is not existing", message)
+                    return
+                recipients = [self._group_id]
+            
+            snapshot_filenames = []
+            if self.attach_snapshots:
+                snapshot_url = self._settings.global_get(["webcam", "snapshot"])
+
+                try:
+                    snapshot_filenames.append(get_webcam_snapshot(snapshot_url))
+                except Exception as e:
+                    self._logger.exception("Couldn't get webcam image...sending without it")
+            send_message(self.url, self.sender, message, recipients, snapshot_filenames)
+        except Exception as e:
+            self._logger.exception("Couldn't send signal message: %s", str(e))         
 
 
-    def on_api_command(self, command, data):
+    def on_api_command(self, command, data): 
         if command == "testMessage":
             self._logger.info(data)
             
             url = None
             sender_nr = None
             recipients = None
+            attach_snapshot = False
             try:
                 url = data["url"]
                 sender_nr = data["sender"]
-                recipients = data["recipients"]
+                recipients = data["recipients"].split(",")
+                if data["attachSnapshot"] == "on":
+                    attach_snapshot = True
             except KeyError as e:
                 self._logger.error("Couldn't get data: %s" %str(e))
                 return
+
             try:
-                self._send_test_message(url, sender_nr, recipients, "Hello from OctoPrint")  
+                snapshot_filenames = []
+                message = "Hello from OctoPrint"
+                if attach_snapshot:
+                    snapshot_url = self._settings.global_get(["webcam", "snapshot"])
+                    try:
+                        snapshot_filenames.append(get_webcam_snapshot(snapshot_url))
+                    except Exception as e:
+                        message = "Hello from OctoPrint.\nThere should be a webcam image attached, but your camera seems to be not working. Please check your camera!"
+                        self._logger.exception("Sending test message. Couldn't get webcam image...sending without it")
+
+                send_message(url, sender_nr, message, recipients, snapshot_filenames)  
             except Exception as e:
                 return flask.jsonify(dict(success=False, msg=str(e)))
             
             return flask.jsonify(dict(success=False, msg="Success! Please check your phone."))
-        elif command == "PrintStarted":
+
+    def on_event(self, event, payload):
+        self._logger.info("Received event %s", event)
+        supported_tags = get_supported_tags()
+        if payload is not None:
+            if "name" in payload:
+                 supported_tags["filename"] = payload["name"]
+            if "time" in payload:
+                supported_tags["elapsed_time"] = octoprint.util.get_formatted_timedelta(timedelta(seconds=payload["time"]))
+        if event == "PrintStarted":
             if self.enabled and self.print_started_event:
-                self._send_message("Print Started") 
-        elif command == "PrintDone":
+                if self.create_group_for_every_print:
+                    self._create_group_if_not_exists()
+                self._logger.info(supported_tags)
+                self._logger.info(self.print_started_event_template)
+                message = self.print_started_event_template.format(**supported_tags) 
+                self._send_message(message) 
+        elif event == "PrintDone":
             if self.enabled and self.print_done_event:
-                self._send_message("Print Done")
-        elif command == "PrintFailed":
+                if self.create_group_for_every_print:
+                    self._create_group_if_not_exists()
+                message = self.print_done_event_template.format(**supported_tags)
+                self._send_message(message)
+        elif event == "PrintFailed":
             if self.enabled and self.print_failed_event:
-                self._send_message("Print Failed")
-        elif command == "PrintCancelled":
+                if self.create_group_for_every_print:
+                    self._create_group_if_not_exists()
+                message = self.print_failed_event_template.format(**supported_tags)
+                self._send_message(message)
+        elif event == "PrintCancelled":
             if self.enabled and self.print_cancelled_event:
-                self._send_message("Print Canceled")
-        elif command == "PrintPaused":
+                if self.create_group_for_every_print:
+                    self._create_group_if_not_exists()
+                message = self.print_cancelled_event_template.format(**supported_tags)
+                self._send_message(message)
+        elif event == "PrintPaused":
             if self.enabled and self.print_paused_event:
-                self._send_message("Print Paused")
+                if self.create_group_for_every_print:
+                    self._create_group_if_not_exists()
+                message = self.print_paused_event_template.format(**supported_tags)
+                self._send_message(message)
+        elif event == "PrintResumed":
+            if self.enabled and self.print_resumed_event:
+                if self.create_group_for_every_print:
+                    self._create_group_if_not_exists()
+                message = self.print_resumed_event_template.format(**supported_tags)
+                self._send_message(message)
 
             
     def get_template_configs(self):
         return [
-            dict(type="settings", custom_bindings=False)
+            dict(type="settings", name="Signal Notifications", custom_bindings=False)
         ]
 
     # ~~ AssetPlugin mixin

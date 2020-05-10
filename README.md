@@ -1,17 +1,33 @@
 # OctoPrint-Signalclirestapi
 
-**TODO:** Describe what your plugin does.
+A Signal Messenger Integration for [Octorpint](https://octoprint.org/) which supports Signal Messenger Groups and uses the [signal-messenger-rest-api docker image](https://github.com/bbernhard/signal-cli-rest-api).
+
+## Features
+
+* Allows to create separate Signal Messenger groups for every print
+* Support for `Print Started`, `Print Stopped`, `Print Paused`, `Print Resumed`, `Print Cancelled`, `Print Failed` events
+* Support for webcam snapshots
+* Support for periodic print progress notifications. 
+
+# Why signal-cli-rest-api?
+
+The main advantage of the [signal-cli-rest-api](https://github.com/bbernhard/signal-cli-rest-api) is, that it doesn't necessarily need to run on the same host system as OctoPi. That means, you can register one phone number with the `signal-cli-rest-api` and use that for various type of notifications in your house (e.g: Octoprint, Home Assistant, etc.)
 
 ## Setup
+
+In order to use this Octoprint Plugin, you need to have a running `signal-cli-rest-api` docker container somewhere. The following [guide](https://github.com/bbernhard/signal-cli-rest-api/blob/master/doc/HOMEASSISTANT.md) describes how you can set up one.
+
+### Octoprint Plugin
 
 Install via the bundled [Plugin Manager](https://docs.octoprint.org/en/master/bundledplugins/pluginmanager.html)
 or manually using this URL:
 
     https://github.com/bbernhard/OctoPrint-Signalclirestapi/archive/master.zip
 
-**TODO:** Describe how to install your plugin, if more needs to be done than just installing it via pip or through
-the plugin manager.
 
 ## Configuration
 
-**TODO:** Describe your plugin's configuration options (if any).
+<img src="https://raw.githubusercontent.com/bbernhard/Octoprint-Signalclirestapi/master/doc/config1.png" width="500">
+<img src="https://raw.githubusercontent.com/bbernhard/Octoprint-Signalclirestapi/master/doc/config2.png" width="500">
+<img src="https://raw.githubusercontent.com/bbernhard/Octoprint-Signalclirestapi/master/doc/config3.png" width="500">
+<img src="https://raw.githubusercontent.com/bbernhard/Octoprint-Signalclirestapi/master/doc/config4.png" width="500">

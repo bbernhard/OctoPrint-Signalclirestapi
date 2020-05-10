@@ -28,8 +28,8 @@ $(function() {
 		var recipients = $("#recipientsInput").val();
 		var sender = $("#senderInput").val();
 		var url = $("#urlInput").val();
-		console.log("bla")
-		//Octoprint.simpleApiCommand("signalclirestapi", "testMessage", {});
+		var attachSnapshot = $("#attachSnapshotsInput").val();
+
 		$.ajax({
 			url: API_BASEURL + "plugin/signalclirestapi",
 			type: "POST",
@@ -38,7 +38,8 @@ $(function() {
 				command: "testMessage",
 				sender: sender,
 				recipients: recipients,	
-				url: url
+				url: url,
+				attachSnapshot: attachSnapshot
 			}),
 			contentType: "application/json; charset=UTF-8",
 			success: function(response) {

@@ -127,6 +127,27 @@
 </form>
 <hr/>
 
+
+<form class="form horizontal">	
+	<div class="control-group">
+		<div class="control-group" title="{{ _('Print Resumed') }}">
+			<div class="controls">
+				<label class="checkbox">
+					<input type="checkbox" data-bind="checked: settings.plugins.signalclirestapi.printresumedevent" /> {{ _('Print Resumed') }}
+				</label>
+			</div>
+		</div>
+		<p>Supported Tags: <code>{user}</code>, <code>{host}</code>, <code>filename</code></p>
+		<div class="control-group" title="{{ _('Body:') }}">
+			<label class="control-label">{{ _('Body:') }}</label>
+			<div class="controls">
+				<input type="text" class="input-block-level" data-bind="value: settings.plugins.signalclirestapi.printresumedeventtemplate">
+			</div>
+		</div>
+	</div>
+</form>
+<hr/>
+
 <form class="form horizontal">	
 	<div class="control-group">
 		<div class="control-group" title="{{ _('Print Cancelled') }}">
@@ -154,7 +175,7 @@
 		<div class="control-group" title="{{ _('Attach Snapshots') }}">
 			<div class="controls">
 				<label class="checkbox">
-					<input type="checkbox" data-bind="checked: settings.plugins.signalclirestapi.attachsnapshots" /> {{ _('Attach Snapshots') }}
+					<input type="checkbox" data-bind="checked: settings.plugins.signalclirestapi.attachsnapshots" id="attachSnapshotsInput" /> {{ _('Attach Snapshots') }}
 				</label>
 			</div>
 		</div>
@@ -174,3 +195,25 @@
 		</div>
 	</div>
 </form>
+
+<h4>Print Progress</h4>
+<p>When enabled, you will receive a status update at 20, 40, 60 and 80% of the print job.</p>
+<form class="form horizontal">	
+	<div class="control-group">
+		<div class="control-group" title="{{ _('Send Print Progress') }}">
+			<div class="controls">
+				<label class="checkbox">
+					<input type="checkbox" data-bind="checked: settings.plugins.signalclirestapi.sendprintprogress" /> {{ _('Send Print Progress') }}
+				</label>
+			</div>
+		</div>
+		<p>Supported Tags: <code>host</code>, <code>filename</code>, <code>progress</code></p>
+		<div class="control-group" title="{{ _('Body:') }}">
+			<label class="control-label">{{ _('Body:') }}</label>
+			<div class="controls">
+				<input type="text" class="input-block-level" data-bind="value: settings.plugins.signalclirestapi.sendprintprogresstemplate">
+			</div>
+		</div>
+	</div>
+</form>
+<hr/>

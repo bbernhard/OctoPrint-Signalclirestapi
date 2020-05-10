@@ -11,17 +11,17 @@ plugin_package = "octoprint_signalclirestapi"
 
 # The plugin's human readable name. Can be overwritten within OctoPrint's internal data via __plugin_name__ in the
 # plugin module
-plugin_name = "OctoPrint-Signalclirestapi"
+plugin_name = "Signal Notifications"
 
 # The plugin's version. Can be overwritten within OctoPrint's internal data via __plugin_version__ in the plugin module
 plugin_version = "0.1.0"
 
 # The plugin's description. Can be overwritten within OctoPrint's internal data via __plugin_description__ in the plugin
 # module
-plugin_description = """TODO"""
+plugin_description = """Signal Notifications."""
 
 # The plugin's author. Can be overwritten within OctoPrint's internal data via __plugin_author__ in the plugin module
-plugin_author = "Bernhard"
+plugin_author = "Bernhard B."
 
 # The plugin's author's mail address.
 plugin_author_email = "bernhard@liftingcoder.com"
