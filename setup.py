@@ -33,7 +33,7 @@ plugin_url = "https://github.com/bbernhard/OctoPrint-Signalclirestapi"
 plugin_license = "AGPLv3"
 
 # Any additional requirements besides OctoPrint should be listed here
-plugin_requires = ["pysignalclirestapi==0.3.7"]
+plugin_requires = ["pysignalclirestapi==0.3.8"]
 
 ### --------------------------------------------------------------------------------------------------------------------
 ### More advanced options that you usually shouldn't have to touch follow after this point
