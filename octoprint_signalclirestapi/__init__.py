@@ -15,7 +15,11 @@ import octoprint.util
 import flask
 from pysignalclirestapi import SignalCliRestApi
 from datetime import datetime, timedelta
-import urllib.request
+
+try:
+    from urllib.request import urlretrieve
+except ImportError:
+    from urllib import urlretrieve
 import tempfile
 import socket
 import getpass
@@ -42,7 +46,7 @@ def send_message(url, sender_nr, message, recipients, filenames=[]):
     api.send_message(message, recipients, filenames=filenames)
 
 def get_webcam_snapshot(snapshot_url): 
-    filename, _ = urllib.request.urlretrieve(snapshot_url, tempfile.gettempdir()+"/snapshot.jpg")
+    filename, _ = urlretrieve(snapshot_url, tempfile.gettempdir()+"/snapshot.jpg")
     return filename
 
 def get_supported_tags():
@@ -112,7 +116,7 @@ class SignalclirestapiPlugin(octoprint.plugin.SettingsPlugin,
         
     @property
     def enabled(self):
-       return self._settings.get_boolean(["enabled"])
+        return self._settings.get_boolean(["enabled"])
 
     @property
     def url(self):
@@ -261,7 +265,7 @@ class SignalclirestapiPlugin(octoprint.plugin.SettingsPlugin,
         supported_tags = get_supported_tags()
         if payload is not None:
             if "name" in payload:
-                 supported_tags["filename"] = payload["name"]
+                supported_tags["filename"] = payload["name"]
             if "time" in payload:
                 supported_tags["elapsed_time"] = octoprint.util.get_formatted_timedelta(timedelta(seconds=payload["time"]))
         if event == "PrintStarted":
