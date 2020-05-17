@@ -237,7 +237,7 @@ class SignalclirestapiPlugin(octoprint.plugin.SettingsPlugin,
                 url = data["url"]
                 sender_nr = data["sender"]
                 recipients = data["recipients"].split(",")
-                if data["attachSnapshot"] == "on":
+                if data["attachSnapshot"]:
                     attach_snapshot = True
             except KeyError as e:
                 self._logger.error("Couldn't get data: %s" %str(e))

@@ -28,7 +28,7 @@ $(function() {
 		var recipients = $("#recipientsInput").val();
 		var sender = $("#senderInput").val();
 		var url = $("#urlInput").val();
-		var attachSnapshot = $("#attachSnapshotsInput").val();
+		var attachSnapshot = $("#attachSnapshotsInput").is(":checked");
 
 		$.ajax({
 			url: API_BASEURL + "plugin/signalclirestapi",
