@@ -3,44 +3,45 @@ layout: plugin
 
 id: signalclirestapi
 title: OctoPrint-Signalclirestapi
-description: TODO
-author: Bernhard
+description: Another Signal Messenger Integration based on the signal-cli-rest-api docker image with support for Signal Messenger groups and print progress.
+author: Bernhard B.
 license: AGPLv3
 
-# TODO
-date: today's date in format YYYY-MM-DD, e.g. 2015-04-21
+date: 2020-05-28 
 
 homepage: https://github.com/bbernhard/OctoPrint-Signalclirestapi
 source: https://github.com/bbernhard/OctoPrint-Signalclirestapi
 archive: https://github.com/bbernhard/OctoPrint-Signalclirestapi/archive/master.zip
 
-# TODO
+
 # Set this to true if your plugin uses the dependency_links setup parameter to include
 # library versions not yet published on PyPi. SHOULD ONLY BE USED IF THERE IS NO OTHER OPTION!
 #follow_dependency_links: false
 
-# TODO
 tags:
-- a list
-- of tags
-- that apply
-- to your plugin
-- (take a look at the existing plugins for what makes sense here)
+- notification 
 
-# TODO
+
 screenshots:
-- url: url of a screenshot, /assets/img/...
-  alt: alt-text of a screenshot
-  caption: caption of a screenshot
-- url: url of another screenshot, /assets/img/...
-  alt: alt-text of another screenshot
-  caption: caption of another screenshot
-- ...
+- url: /assets/img/plugins/signalclirestapi/config1.png
+  alt: Signal Messenger Configuration Part1
+  caption: Signal Messenger Configuration Part1
+- url: /assets/img/plugins/signalclirestapi/config2.png
+  alt: Signal Messenger Configuration Part2
+  caption: Signal Messenger Configuration Part2
+- url: /assets/img/plugins/signalclirestapi/config3.png
+  alt: Signal Messenger Configuration Part3
+  caption: Signal Messenger Configuration Part3
+- url: /assets/img/plugins/signalclirestapi/config4.png
+  alt: Signal Messenger Configuration Part4
+  caption: Signal Messenger Configuration Part4
 
-# TODO
-featuredimage: url of a featured image for your plugin, /assets/img/...
+- url: /assets/img/plugins/signalclirestapi/signal1.png
+  alt: Signal Messenger Screenshot
+  caption: Supports Signal Messenger groups
 
-# TODO
+featuredimage: /assets/img/plugins/signalclirestapi/config1.png
+
 # You only need the following if your plugin requires specific OctoPrint versions or
 # specific operating systems to function - you can safely remove the whole
 # "compatibility" block if this is not the case.
@@ -96,5 +97,22 @@ compatibility:
 
 ---
 
-**TODO**: Longer description of your plugin, configuration examples etc. This part will be visible on the page at
-http://plugins.octoprint.org/plugin/signalclirestapi/
+Another Signal Messenger Integration for Octoprint.
+
+# Features 
+
+* Support for Signal Messenger groups: 
+  
+  It's possible to create a Signal Messenger group for every print job. That way, all the messages and webcam snapshots are nicely grouped. 
+
+* Support for Print Progress:
+  
+  If enabled, a message will be sent when the print job progress reaches 20%, 40, 80%.
+
+* Support for all Print Events: 
+  
+  The plugin supports the Print Started, Print Failed, Print Cancelled, Print Paused, Print Resumed, Print Done events.
+
+* Support for signal-cli-rest-api: 
+  
+  The [signal-cli-rest-api](https://github.com/bbernhard/signal-cli-rest-api) is a small REST API wrapper around the awesome [signal-cli](https://github.com/AsamK/signal-cli) commandline tool. The main advantage is, that you don't need to run `signal-cli` on the same host as your Octoprint instance. That's especially useful, if you use other services in your home network (like [Home Assistant](https://www.home-assistant.io/)) that also send Signal Messenger notifications.

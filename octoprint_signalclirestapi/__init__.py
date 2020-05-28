@@ -271,6 +271,7 @@ class SignalclirestapiPlugin(octoprint.plugin.SettingsPlugin,
         if event == "PrintStarted":
             if self.enabled and self.print_started_event:
                 if self.create_group_for_every_print:
+                    self._group_id = None
                     self._create_group_if_not_exists()
                 self._logger.info(supported_tags)
                 self._logger.info(self.print_started_event_template)
