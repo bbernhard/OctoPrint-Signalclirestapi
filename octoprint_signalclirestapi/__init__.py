@@ -43,6 +43,12 @@ def send_message(url, sender_nr, message, recipients, filenames=[]):
     verify_connection_settings(url, sender_nr, recipients) 
 
     api = SignalCliRestApi(url, sender_nr)
+    
+    # before we send the actual message, do a receive. That's necessary, 
+    # because if someone invites one to a Signal group we want to update
+    # the recipients list.
+    api.receive()
+
     api.send_message(message, recipients, filenames=filenames)
 
 def get_webcam_snapshot(snapshot_url): 
