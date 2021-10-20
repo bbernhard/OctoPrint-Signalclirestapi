@@ -47,7 +47,8 @@ def send_message(url, sender_nr, message, recipients, filenames=[]):
     # before we send the actual message, do a receive. That's necessary, 
     # because if someone invites one to a Signal group we want to update
     # the recipients list.
-    api.receive()
+    if api.mode() != "json-rpc":
+        api.receive()
 
     api.send_message(message, recipients, filenames=filenames)
 
