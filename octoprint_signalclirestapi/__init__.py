@@ -156,7 +156,7 @@ class SignalclirestapiPlugin(octoprint.plugin.SettingsPlugin,
     
     @property
     def filament_change_event(self):
-        return self._settings.get(["filamentchangeevent"])
+        return self._settings.get_boolean(["filamentchangeevent"])
     
     @property
     def print_cancelled_event(self):
