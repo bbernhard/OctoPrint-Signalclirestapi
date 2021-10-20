@@ -4,10 +4,10 @@ A Signal Messenger Integration for [Octorpint](https://octoprint.org/) which sup
 
 ## Features
 
-* Allows to create separate Signal Messenger groups for every print
+* Creates a separate Signal chat group per print.
 * Support for `Print Started`, `Print Stopped`, `Print Paused`, `Print Resumed`, `Print Cancelled`, `Print Failed` events
-* Support for webcam snapshots
-* Support for periodic print progress notifications. 
+* Support attaching webcam snapshots.
+* Supports periodic print progress notifications. 
 
 ## Why signal-cli-rest-api?
 
