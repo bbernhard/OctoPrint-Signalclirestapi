@@ -127,6 +127,25 @@
 </form>
 <hr/>
 
+<form class="form horizontal">
+        <div class="control-group">
+                <div class="control-group" title="{{ _('Filament Change') }}">
+                        <div class="controls">
+                                <label class="checkbox">
+                                        <input type="checkbox" data-bind="checked: settings.plugins.signalclirestapi.filamentchangeevent" /> {{ _('Filament Change') }}
+                                </label>
+                        </div>
+                </div>
+                <p>Supported Tags: <code>{user}</code>, <code>{host}</code></p>
+                <div class="control-group" title="{{ _('Body:') }}">
+                        <label class="control-label">{{ _('Body:') }}</label>
+                        <div class="controls">
+                                <input type="text" class="input-block-level" data-bind="value: settings.plugins.signalclirestapi.filamentchangeeventtemplate">
+                        </div>
+                </div>
+        </div>
+</form>
+<hr/>
 
 <form class="form horizontal">	
 	<div class="control-group">

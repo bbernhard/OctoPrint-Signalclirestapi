@@ -108,10 +108,12 @@ class SignalclirestapiPlugin(octoprint.plugin.SettingsPlugin,
             printfailedevent=True,
             printcancelledevent=True,
             printpausedevent=True,
+            filamentchangeevent=True,
             printresumedevent=True,
             printstartedeventtemplate="OctoPrint@{host}: {filename}: Job started.",
             printdoneeventtemplate="OctoPrint@{host}: {filename}: Job complete after {elapsed_time}.",
             printpausedeventtemplate="OctoPrint@{host}: {filename}: Job paused!",
+            filamentchangeeventtemplate="OctoPrint@{host}: Filament change required!",
             printfailedeventtemplate="OctoPrint@{host}: {filename}: Job failed after {elapsed_time} ({reason})!", 
             printcancelledeventtemplate="OctoPrint@{host}: {filename}: Job cancelled after {elapsed_time}!",
             printresumedeventtemplate="OctoPrint@{host}: {filename}: Job resumed!",
@@ -154,6 +156,10 @@ class SignalclirestapiPlugin(octoprint.plugin.SettingsPlugin,
         return self._settings.get_boolean(["printpausedevent"])
     
     @property
+    def filament_change_event(self):
+        return self._settings.get_boolean(["filamentchangeevent"])
+    
+    @property
     def print_cancelled_event(self):
         return self._settings.get_boolean(["printcancelledevent"])
 
@@ -184,6 +190,10 @@ class SignalclirestapiPlugin(octoprint.plugin.SettingsPlugin,
     @property
     def print_paused_event_template(self):
         return self._settings.get(["printpausedeventtemplate"])
+    
+    @property
+    def filament_change_event_template(self):
+        return self._settings.get(["filamentchangeeventtemplate"])
 
     @property
     def print_cancelled_event_template(self):
@@ -307,6 +317,12 @@ class SignalclirestapiPlugin(octoprint.plugin.SettingsPlugin,
                 if self.create_group_for_every_print:
                     self._create_group_if_not_exists()
                 message = self.print_paused_event_template.format(**supported_tags)
+                self._send_message(message)
+        elif event == "FilamentChange":
+            if self.enabled and self.filament_change_event:
+                if self.create_group_for_every_print:
+                    self._create_group_if_not_exists()
+                message = self.filament_change_event_template.format(**supported_tags)
                 self._send_message(message)
         elif event == "PrintResumed":
             if self.enabled and self.print_resumed_event:
