@@ -89,7 +89,7 @@ class SignalclirestapiPlugin(octoprint.plugin.SettingsPlugin,
             supported_tags["filename"] = path
             message = self.send_print_progress_template.format(**supported_tags)
             
-            if progress in self.print_progress_intervals:
+            if str(progress) in self.print_progress_intervals:
                 self._send_message(message)
 
     def get_api_commands(self):
@@ -311,7 +311,7 @@ class SignalclirestapiPlugin(octoprint.plugin.SettingsPlugin,
             return flask.jsonify(dict(success=False, msg="Success! Please check your phone."))
 
     def on_event(self, event, payload):
-        self._logger.info("Received event %s", event)
+        self._logger.debug("Received event %s", event)
         supported_tags = get_supported_tags()
         if payload is not None:
             if "name" in payload:
