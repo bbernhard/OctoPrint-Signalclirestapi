@@ -23,6 +23,14 @@ except ImportError:
 import tempfile
 import socket
 import getpass
+import time
+import threading
+
+
+def signal_receive_thread(_plugin):
+    while True:
+        _plugin.logger.info(receive_message(_plugin.url, _plugin.sender))
+        time.sleep(1)
 
 
 def verify_connection_settings(url, sender_nr, recipients):
@@ -39,16 +47,20 @@ def create_group(url, sender_nr, members, name):
     group_id = api.create_group(name, members)
     return group_id
 
+def receive_message(url, sender_nr):
+    verify_connection_settings(url, sender_nr, "dummy") 
+    return SignalCliRestApi(url, sender_nr).receive()
+
 def send_message(url, sender_nr, message, recipients, filenames=[]):
     verify_connection_settings(url, sender_nr, recipients) 
 
     api = SignalCliRestApi(url, sender_nr)
     
-    # before we send the actual message, do a receive. That's necessary, 
-    # because if someone invites one to a Signal group we want to update
-    # the recipients list.
-    if api.mode() != "json-rpc":
-        api.receive()
+    # # before we send the actual message, do a receive. That's necessary, 
+    # # because if someone invites one to a Signal group we want to update
+    # # the recipients list.
+    # if api.mode() != "json-rpc":
+    #     api.receive()
 
     api.send_message(message, recipients, filenames=filenames)
 
@@ -71,16 +83,25 @@ class SignalclirestapiPlugin(octoprint.plugin.SettingsPlugin,
                              octoprint.plugin.TemplatePlugin,
                              octoprint.plugin.EventHandlerPlugin,
                              octoprint.plugin.StartupPlugin,
+                             octoprint.plugin.RestartNeedingPlugin,
                              octoprint.plugin.ProgressPlugin):
 
     def __init__(self):
         self._group_id = None 
     
     def on_after_startup(self):
+
+        threading.Thread(target=signal_receive_thread, args=(self,)).start()
+
         if self.create_group_by_printer and not self.printer_group_id is None:
             self._group_id = self.printer_group_id
 
     # ~~ SettingsPlugin mixin
+    def on_settings_save(self, data):
+        octoprint.plugin.SettingsPlugin.on_settings_save(self, data)
+
+        if self.create_group_by_printer and not self.printer_group_id is None:
+            self._group_id = self.printer_group_id
 
     def on_print_progress(self, storage, path, progress):
         if self.enabled and self.send_print_progress:
@@ -350,7 +371,6 @@ class SignalclirestapiPlugin(octoprint.plugin.SettingsPlugin,
                 message = self.print_resumed_event_template.format(**supported_tags)
                 self._send_message(message)
 
-            
     def get_template_configs(self):
         return [
             dict(type="settings", name="Signal Notifications", custom_bindings=False)
