@@ -229,13 +229,13 @@ class SignalclirestapiPlugin(octoprint.plugin.SettingsPlugin,
                 self._logger.exception("Couldn't create signal group")
 
     def _create_printer_group_if_not_exists(self):
-        if not self.printer_group_id() is None: 
-            self._group_id = self.printer_group_id()
+        if not self.printer_group_id is None: 
+            self._group_id = self.printer_group_id
             return
         try:
             group_name = self._printer_profile_manager.get_current_or_default()["name"]
             self._group_id = create_group(self.url, self.sender, self.recipients, group_name) 
-            self._settings.set("printergroupid", self._group_id)
+            self._settings.set(["printergroupid"], self._group_id)
             self._settings.save()
         except Exception as e:
             self._logger.exception("Couldn't create signal group")
