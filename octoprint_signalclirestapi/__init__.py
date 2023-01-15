@@ -70,11 +70,16 @@ class SignalclirestapiPlugin(octoprint.plugin.SettingsPlugin,
                              octoprint.plugin.SimpleApiPlugin,
                              octoprint.plugin.TemplatePlugin,
                              octoprint.plugin.EventHandlerPlugin,
+                             octoprint.plugin.StartupPlugin,
                              octoprint.plugin.ProgressPlugin):
 
     def __init__(self):
         self._group_id = None 
     
+    def on_after_startup(self):
+        if self.create_group_by_printer() and not self.printer_group_id is None:
+            self._group_id = self.printer_group_id()
+
     # ~~ SettingsPlugin mixin
 
     def on_print_progress(self, storage, path, progress):
@@ -84,15 +89,8 @@ class SignalclirestapiPlugin(octoprint.plugin.SettingsPlugin,
             supported_tags["filename"] = path
             message = self.send_print_progress_template.format(**supported_tags)
             
-            if progress == 20:
+            if progress in (10, 20, 30, 40, 50, 60, 70, 80, 90):
                 self._send_message(message)
-            elif progress == 40:
-                self._send_message(message)
-            elif progress == 60:
-                self._send_message(message)
-            elif progress == 80:
-                self._send_message(message)
-
 
     def get_api_commands(self):
         return dict(testMessage=["sender", "recipients", "url"]);
@@ -119,7 +117,9 @@ class SignalclirestapiPlugin(octoprint.plugin.SettingsPlugin,
             printresumedeventtemplate="OctoPrint@{host}: {filename}: Job resumed!",
             attachsnapshots=False,
             creategroupforeveryprint=True,
+            creategroupbyprinter=False,
             sendprintprogress=True,
+            printergroupid=None,
             sendprintprogresstemplate="OctoPrint@{host}: {filename}: Progess: {progress}%"
         ) 
         
@@ -172,6 +172,14 @@ class SignalclirestapiPlugin(octoprint.plugin.SettingsPlugin,
         return self._settings.get_boolean(["creategroupforeveryprint"])
 
     @property
+    def create_group_by_printer(self):
+        return self._settings.get_boolean(["creategroupbyprinter"])
+
+    @property
+    def printer_group_id(self):
+        return self._settings.get(["printergroupid"])
+
+    @property
     def attach_snapshots(self):
         return self._settings.get_boolean(["attachsnapshots"])
 
@@ -220,13 +228,33 @@ class SignalclirestapiPlugin(octoprint.plugin.SettingsPlugin,
             except Exception as e:
                 self._logger.exception("Couldn't create signal group")
 
+    def _create_printer_group_if_not_exists(self):
+        if not self.printer_group_id() is None: 
+            self._group_id = self.printer_group_id()
+            return
+        try:
+            group_name = self._printer_profile_manager.get_current_or_default()["name"]
+            self._group_id = create_group(self.url, self.sender, self.recipients, group_name) 
+            self._settings.set("printergroupid", self._group_id)
+            self._settings.save()
+        except Exception as e:
+            self._logger.exception("Couldn't create signal group")
+
     def _send_message(self, message):
         try:
             recipients = self.recipients
-            if self.create_group_for_every_print:
+
+            if self.create_group_for_every_print or self.create_group_by_printer:
+                if self.create_group_for_every_print and self._group_id is None:
+                    self._create_group_if_not_exists()
+
+                if self.create_group_by_printer:
+                    self._create_printer_group_if_not_exists()
+
                 if self._group_id is None:
                     self._logger.error("Couldn't send message %s as group is not existing", message)
                     return
+
                 recipients = [self._group_id]
             
             snapshot_filenames = []
@@ -287,47 +315,33 @@ class SignalclirestapiPlugin(octoprint.plugin.SettingsPlugin,
                 supported_tags["elapsed_time"] = octoprint.util.get_formatted_timedelta(timedelta(seconds=payload["time"]))
         if event == "PrintStarted":
             if self.enabled and self.print_started_event:
-                if self.create_group_for_every_print:
-                    self._group_id = None
-                    self._create_group_if_not_exists()
                 self._logger.info(supported_tags)
                 self._logger.info(self.print_started_event_template)
                 message = self.print_started_event_template.format(**supported_tags) 
+                if self.create_group_for_every_print: self._group_id = None 
                 self._send_message(message) 
         elif event == "PrintDone":
             if self.enabled and self.print_done_event:
-                if self.create_group_for_every_print:
-                    self._create_group_if_not_exists()
                 message = self.print_done_event_template.format(**supported_tags)
                 self._send_message(message)
         elif event == "PrintFailed":
             if self.enabled and self.print_failed_event:
-                if self.create_group_for_every_print:
-                    self._create_group_if_not_exists()
                 message = self.print_failed_event_template.format(**supported_tags)
                 self._send_message(message)
         elif event == "PrintCancelled":
             if self.enabled and self.print_cancelled_event:
-                if self.create_group_for_every_print:
-                    self._create_group_if_not_exists()
                 message = self.print_cancelled_event_template.format(**supported_tags)
                 self._send_message(message)
         elif event == "PrintPaused":
             if self.enabled and self.print_paused_event:
-                if self.create_group_for_every_print:
-                    self._create_group_if_not_exists()
                 message = self.print_paused_event_template.format(**supported_tags)
                 self._send_message(message)
         elif event == "FilamentChange":
             if self.enabled and self.filament_change_event:
-                if self.create_group_for_every_print:
-                    self._create_group_if_not_exists()
                 message = self.filament_change_event_template.format(**supported_tags)
                 self._send_message(message)
         elif event == "PrintResumed":
             if self.enabled and self.print_resumed_event:
-                if self.create_group_for_every_print:
-                    self._create_group_if_not_exists()
                 message = self.print_resumed_event_template.format(**supported_tags)
                 self._send_message(message)
 

@@ -202,13 +202,16 @@
 </form>
 
 <h5>Grouping</h5>
-<p>When enabled, a new Signal Messenger group for every print is created.</p>
+<p>When enabled, messages will be grouped as specified</p>
 <form class="form horizontal">
 	<div class="control-group">
-		<div class="control-group" title="{{ _('Enabled') }}">
+		<div class="control-group" title="{{ _('When enabled, messages will be grouped as specified') }}">
 			<div class="controls">
 				<label class="checkbox">
-					<input type="checkbox" data-bind="checked: settings.plugins.signalclirestapi.creategroupforeveryprint" /> {{ _('Enabled') }}
+					<input type="checkbox" data-bind="checked: settings.plugins.signalclirestapi.creategroupforeveryprint" /> {{ _('A new Signal Messenger group for every print is created') }}
+				</label>
+				<label class="checkbox">
+					<input type="checkbox" data-bind="checked: settings.plugins.signalclirestapi.creategroupbyprinter" /> {{ _('Messages are grouped by source machine / printer') }}
 				</label>
 			</div>
 		</div>
@@ -216,7 +219,7 @@
 </form>
 
 <h4>Print Progress</h4>
-<p>When enabled, you will receive a status update at 20, 40, 60 and 80% of the print job.</p>
+<p>When enabled, you will receive a status update every 10% of the print job.</p>
 <form class="form horizontal">	
 	<div class="control-group">
 		<div class="control-group" title="{{ _('Send Print Progress') }}">
