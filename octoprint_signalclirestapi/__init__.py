@@ -89,7 +89,7 @@ class SignalclirestapiPlugin(octoprint.plugin.SettingsPlugin,
             supported_tags["filename"] = path
             message = self.send_print_progress_template.format(**supported_tags)
             
-            if progress in (10, 20, 30, 40, 50, 60, 70, 80, 90):
+            if progress in self.print_progress_intervals:
                 self._send_message(message)
 
     def get_api_commands(self):
@@ -120,6 +120,7 @@ class SignalclirestapiPlugin(octoprint.plugin.SettingsPlugin,
             creategroupbyprinter=False,
             sendprintprogress=True,
             printergroupid=None,
+            progressintervals="20,40,60,80",
             sendprintprogresstemplate="OctoPrint@{host}: {filename}: Progess: {progress}%"
         ) 
         
@@ -178,6 +179,10 @@ class SignalclirestapiPlugin(octoprint.plugin.SettingsPlugin,
     @property
     def printer_group_id(self):
         return self._settings.get(["printergroupid"])
+
+    @property
+    def print_progress_intervals(self):
+        return self._settings.get(["progressintervals"]).split(",")
 
     @property
     def attach_snapshots(self):

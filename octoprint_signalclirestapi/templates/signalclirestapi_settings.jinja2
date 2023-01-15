@@ -219,7 +219,7 @@
 </form>
 
 <h4>Print Progress</h4>
-<p>When enabled, you will receive a status update for each percentage specified.</p>
+<p>When enabled, you will receive a status update for each percentage specified (comma delimited list).</p>
 <form class="form horizontal">	
 	<div class="control-group">
 		<div class="control-group" title="{{ _('Send Print Progress') }}">
@@ -227,6 +227,9 @@
 				<label class="checkbox">
 					<input type="checkbox" data-bind="checked: settings.plugins.signalclirestapi.sendprintprogress" /> {{ _('Send Print Progress') }}
 				</label>
+				<!-- ko if: settings.plugins.signalclirestapi.sendprintprogress -->
+					<input type="text" class="input-mini" style="width: 200px" data-bind="value: settings.plugins.signalclirestapi.progressintervals">
+				<!-- /ko -->
 			</div>
 		</div>
 		<p>Supported Tags: <code>host</code>, <code>filename</code>, <code>progress</code></p>
