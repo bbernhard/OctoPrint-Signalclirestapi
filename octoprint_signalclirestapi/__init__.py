@@ -77,8 +77,8 @@ class SignalclirestapiPlugin(octoprint.plugin.SettingsPlugin,
         self._group_id = None 
     
     def on_after_startup(self):
-        if self.create_group_by_printer() and not self.printer_group_id is None:
-            self._group_id = self.printer_group_id()
+        if self.create_group_by_printer and not self.printer_group_id is None:
+            self._group_id = self.printer_group_id
 
     # ~~ SettingsPlugin mixin
 
