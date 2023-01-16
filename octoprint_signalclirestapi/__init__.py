@@ -12,6 +12,8 @@ from __future__ import absolute_import
 
 import octoprint.plugin
 import octoprint.util
+from octoprint.events import Events
+
 import flask
 from pysignalclirestapi import SignalCliRestApi
 from datetime import datetime, timedelta
@@ -37,15 +39,14 @@ def signal_receive_thread(_plugin):
                     if "sourceNumber" in envelope.keys():
                         sourceNumber = envelope["sourceNumber"]
                     if "dataMessage" in envelope.keys():
-                        _plugin._logger.debug("signal_receive_thread: message=[{}]".format(envelope))   
                         dataMsg = envelope["dataMessage"]
                         if "message" in dataMsg.keys():
                             message = dataMsg["message"]
                         if "groupInfo" in dataMsg.keys() and "groupId" in dataMsg["groupInfo"].keys():
                             groupId = dataMsg["groupInfo"]["groupId"]
-
                         # we only want to respond to messages meant for us
                         if not groupId is None and groupId == _plugin._group_id["internal_id"]:
+                            _plugin._logger.debug("signal_receive_thread: message=[{}] group=[{}]".format(message, groupId))   
                             if message.strip().upper() == "STATUS":
                                 _plugin.print_progress("dummy", _plugin._last_filename, _plugin._last_progress, True)
                             elif message.strip().upper() == "CANCEL":
@@ -60,11 +61,11 @@ def signal_receive_thread(_plugin):
                                 helpMsg = "I respond to a couple different commands:\r\n\r\nstatus - machine / job status report\r\ncancel - cancel current job (if active)\r\nshutdown - shutdown our server\r\nreboot - reboot our server"
                                 _plugin._send_message(helpMsg, snapshot=False)    
                         elif not groupId is None:
-                            groups = SignalCliRestApi.list_groups()
-
+                            groups = SignalCliRestApi(_plugin.url, _plugin.sender).list_groups()
                             # echo the message back out    
                             for group in groups:
                                 if group["internal_id"] == groupId:
+                                    _plugin._logger.debug("signal_receive_thread: echoing message=[{}] group=[{}]".format(message, group["id"]))   
                                     send_message(_plugin.url, _plugin.sender, message, [group["id"]])
                                     break
 
@@ -234,7 +235,8 @@ class SignalclirestapiPlugin(octoprint.plugin.SettingsPlugin,
 
     @property
     def printer_group_id(self):
-        return self._settings.get(["printergroupid"])
+        printergroupid = self._settings.get(["printergroupid"])
+        return printergroupid if len(printergroupid) > 0 else None
 
     @property
     def print_progress_intervals(self):
@@ -367,7 +369,8 @@ class SignalclirestapiPlugin(octoprint.plugin.SettingsPlugin,
             return flask.jsonify(dict(success=False, msg="Success! Please check your phone."))
 
     def on_event(self, event, payload):
-        # self._logger.debug("Received event %s", event)
+        if event == Events.SHUTDOWN: 
+            self._logger.debug("Received event %s", event)
         supported_tags = get_supported_tags()
         if payload is not None:
             if "name" in payload:
