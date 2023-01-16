@@ -28,7 +28,6 @@ import threading
 import subprocess
 
 def signal_receive_thread(_plugin):
-
     while not _plugin._shutting_down:
         try:
             msgs = receive_message(_plugin.url, _plugin.sender)
@@ -60,6 +59,14 @@ def signal_receive_thread(_plugin):
                             else:
                                 helpMsg = "I respond to a couple different commands:\r\n\r\nstatus - machine / job status report\r\ncancel - cancel current job (if active)\r\nshutdown - shutdown our server\r\nreboot - reboot our server"
                                 _plugin._send_message(helpMsg, snapshot=False)    
+                        elif not groupId is None:
+                            groups = SignalCliRestApi.list_groups()
+
+                            # echo the message back out    
+                            for group in groups:
+                                if group["internal_id"] == groupId:
+                                    send_message(_plugin.url, _plugin.sender, message, [group["id"]])
+                                    break
 
         except BaseException as e:
             _plugin._logger.error("signal_receive_thread: [{}]".format(e))
