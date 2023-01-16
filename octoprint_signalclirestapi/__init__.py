@@ -25,28 +25,48 @@ import socket
 import getpass
 import time
 import threading
+import subprocess
 
 def signal_receive_thread(_plugin):
-    try:
-        while not _plugin._shutdown:
+
+    while not _plugin._shutting_down:
+        try:
             msgs = receive_message(_plugin.url, _plugin.sender)
             for msg in msgs:
-                dataMsg = msg["envelope"]["dataMessage"]
-                if not dataMsg is None:
-                    message = dataMsg["message"]
-                    sourceNumber = dataMsg["sourceNumber"]
-                    groupId = dataMsg["groupInfo"]["groupId"]
-                    _plugin._logger.info("message=[{}] groupId=[{}]".format(message, groupId))   
+                if "envelope" in msg.keys():
+                    envelope = msg["envelope"]
+                    if "sourceNumber" in envelope.keys():
+                        sourceNumber = envelope["sourceNumber"]
+                    if "dataMessage" in envelope.keys():
+                        _plugin._logger.debug("signal_receive_thread: message=[{}]".format(envelope))   
+                        dataMsg = envelope["dataMessage"]
+                        if "message" in dataMsg.keys():
+                            message = dataMsg["message"]
+                        if "groupInfo" in dataMsg.keys() and "groupId" in dataMsg["groupInfo"].keys():
+                            groupId = dataMsg["groupInfo"]["groupId"]
 
-                    if message.strip().upper() == "HELP":
-                        helpMsg = "I respond to a couple different commands:\r\n\r\nstatus - current machine / job progress\r\ncancel - cancel current job (if active)"
-                        send_message(_plugin.url, _plugin.sender, helpMsg, sourceNumber if groupId is None else groupId)    
-                    if message.strip().upper() == "STATUS":
-                        _plugin.on_print_progress(_plugin, "dummy", _plugin.lastFilename, _plugin._lastProgress, override=True)
+                        # we only want to respond to messages meant for us
+                        if not groupId is None and groupId == _plugin._group_id["internal_id"]:
+                            if message.strip().upper() == "STATUS":
+                                _plugin.print_progress("dummy", _plugin._last_filename, _plugin._last_progress, True)
+                            elif message.strip().upper() == "CANCEL":
+                                _plugin._printer.cancel_print()
+                            elif message.strip().upper() == "SHUTDOWN":
+                                cmd = _plugin._settings.global_get(["server", "commands", "systemShutdownCommand"])
+                                subprocess.call(cmd, shell=True)
+                            elif message.strip().upper() == "REBOOT":
+                                cmd = _plugin._settings.global_get(["server", "commands", "systemRestartCommand"])
+                                subprocess.call(cmd, shell=True)
+                            else:
+                                helpMsg = "I respond to a couple different commands:\r\n\r\nstatus - machine / job status report\r\ncancel - cancel current job (if active)\r\nshutdown - shutdown our server\r\nreboot - reboot our server"
+                                _plugin._send_message(helpMsg, snapshot=False)    
 
+        except BaseException as e:
+            _plugin._logger.error("signal_receive_thread: [{}]".format(e))
+        finally:
             time.sleep(1)
-    except BaseException as e:
-        _plugin._logger.error("signal_receive_thread: [{}]".format(e))
+    
+    _plugin._logger.debug("signal_receive_thread shutdown")
 
 def receive_message(url, sender_nr):
     if url is None or sender_nr is None or len(url) == 0 or len(sender_nr) == 0: return
@@ -60,14 +80,21 @@ def verify_connection_settings(url, sender_nr, recipients):
     if recipients is None or recipients == "":
         raise Exception("Please provide at least one recipient") 
 
-def create_group(url, sender_nr, members, name):
-    api = SignalCliRestApi(url, sender_nr) 
-    group_id = api.create_group(name, members)
-    return group_id
-
 def send_message(url, sender_nr, message, recipients, filenames=[]):
     verify_connection_settings(url, sender_nr, recipients) 
     SignalCliRestApi(url, sender_nr).send_message(message, recipients, filenames=filenames)
+
+def create_group(url, sender_nr, members, name):
+    api = SignalCliRestApi(url, sender_nr) 
+    group_id = api.create_group(name, members)
+
+    groups = api.list_groups()
+    
+    for group in groups:
+        if group["id"] == group_id:
+            return { "id": group_id, "internal_id": group["internal_id"] }
+
+    raise Exception("id mismatch while adding group")
 
 def get_webcam_snapshot(snapshot_url): 
     filename, _ = urlretrieve(snapshot_url, tempfile.gettempdir()+"/snapshot.jpg")
@@ -88,22 +115,24 @@ class SignalclirestapiPlugin(octoprint.plugin.SettingsPlugin,
                              octoprint.plugin.TemplatePlugin,
                              octoprint.plugin.EventHandlerPlugin,
                              octoprint.plugin.StartupPlugin,
+                             octoprint.plugin.ShutdownPlugin,
                              octoprint.plugin.ProgressPlugin):
 
     def __init__(self):
         self._group_id = None 
-        self._shutdown = False
-        self._lastProgress = 0
+        self._shutting_down = False
+        self._last_progress = 0
+        self._last_filename = ""
     
     def on_after_startup(self):
-
         threading.Thread(target=signal_receive_thread, args=(self,)).start()
 
         if self.create_group_by_printer and not self.printer_group_id is None:
             self._group_id = self.printer_group_id
 
     def on_shutdown(self):
-        self._shutdown = True
+        self._shutting_down = True
+        self._logger.debug("triggering receive client shutdown")
 
     # ~~ SettingsPlugin mixin
     def on_settings_save(self, data):
@@ -139,7 +168,7 @@ class SignalclirestapiPlugin(octoprint.plugin.SettingsPlugin,
             creategroupforeveryprint=True,
             creategroupbyprinter=False,
             sendprintprogress=True,
-            printergroupid=None,
+            printergroupid={},
             progressintervals="20,40,60,80",
             sendprintprogresstemplate="OctoPrint@{host}: {filename}: Progess: {progress}%"
         ) 
@@ -265,7 +294,7 @@ class SignalclirestapiPlugin(octoprint.plugin.SettingsPlugin,
         except Exception as e:
             self._logger.exception("Couldn't create signal group")
 
-    def _send_message(self, message):
+    def _send_message(self, message, snapshot=True):
         try:
             recipients = self.recipients
 
@@ -280,10 +309,10 @@ class SignalclirestapiPlugin(octoprint.plugin.SettingsPlugin,
                     self._logger.error("Couldn't send message %s as group is not existing", message)
                     return
 
-                recipients = [self._group_id]
+                recipients = [self._group_id["id"]]
             
             snapshot_filenames = []
-            if self.attach_snapshots:
+            if self.attach_snapshots and snapshot:
                 snapshot_url = self._settings.global_get(["webcam", "snapshot"])
 
                 try:
@@ -297,7 +326,7 @@ class SignalclirestapiPlugin(octoprint.plugin.SettingsPlugin,
 
     def on_api_command(self, command, data): 
         if command == "testMessage":
-            self._logger.info(data)
+            self._logger.debug(data)
             
             url = None
             sender_nr = None
@@ -331,7 +360,7 @@ class SignalclirestapiPlugin(octoprint.plugin.SettingsPlugin,
             return flask.jsonify(dict(success=False, msg="Success! Please check your phone."))
 
     def on_event(self, event, payload):
-        self._logger.debug("Received event %s", event)
+        # self._logger.debug("Received event %s", event)
         supported_tags = get_supported_tags()
         if payload is not None:
             if "name" in payload:
@@ -341,8 +370,6 @@ class SignalclirestapiPlugin(octoprint.plugin.SettingsPlugin,
         if event == "PrintStarted":
             self._lastProgress = 0
             if self.enabled and self.print_started_event:
-                self._logger.info(supported_tags)
-                self._logger.info(self.print_started_event_template)
                 message = self.print_started_event_template.format(**supported_tags) 
                 if self.create_group_for_every_print: self._group_id = None 
                 self._send_message(message) 
@@ -371,17 +398,22 @@ class SignalclirestapiPlugin(octoprint.plugin.SettingsPlugin,
                 message = self.print_resumed_event_template.format(**supported_tags)
                 self._send_message(message)
 
-    def on_print_progress(self, storage, path, progress, override=False):
-        self._lastFilename = path
-        self._lastProgress = progress
+    def on_print_progress(self, storage, path, progress):
+        self.print_progress(storage, path, progress, False)
+        
+    def print_progress(self, storage, path, progress, override):
+        self._last_filename = path
+        self._last_progress = progress
 
-        if self.enabled and self.send_print_progress:
+        if self.enabled and (self.send_print_progress or override):
             supported_tags = get_supported_tags()
             supported_tags["progress"] = progress
             supported_tags["filename"] = path
             message = self.send_print_progress_template.format(**supported_tags)
-            
+
             if str(progress) in self.print_progress_intervals or override:
+                if progress in (0, 100) or len(path) == 0:
+                    message = "no job is currently active"
                 self._send_message(message)
 
     def get_template_configs(self):
