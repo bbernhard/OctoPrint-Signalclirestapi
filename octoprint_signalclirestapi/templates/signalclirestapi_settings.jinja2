@@ -208,10 +208,13 @@
 		<div class="control-group" title="{{ _('When enabled, messages will be grouped as specified') }}">
 			<div class="controls">
 				<label class="checkbox">
-					<input type="checkbox" data-bind="checked: settings.plugins.signalclirestapi.creategroupforeveryprint" /> {{ _('A new Signal Messenger group for every print is created') }}
+					<input type="radio" name="groupSettings" value="job" data-bind="checked: settings.plugins.signalclirestapi.groupsettings" /> {{ _('Messages are grouped by each job as it runs') }}
 				</label>
 				<label class="checkbox">
-					<input type="checkbox" data-bind="checked: settings.plugins.signalclirestapi.creategroupbyprinter" /> {{ _('Messages are grouped by source machine / printer') }}
+					<input type="radio" name="groupSettings" value="machine" data-bind="checked: settings.plugins.signalclirestapi.groupsettings" /> {{ _('Messages are grouped by source machine / printer (uses profile name)') }}
+				</label>
+				<label class="checkbox">
+					<input type="radio" name="groupSettings" value="none" data-bind="checked: settings.plugins.signalclirestapi.groupsettings" /> {{ _('Messages will be sent to the recipients directly') }}
 				</label>
 			</div>
 		</div>
