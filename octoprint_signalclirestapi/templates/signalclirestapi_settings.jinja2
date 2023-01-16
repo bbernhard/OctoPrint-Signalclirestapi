@@ -43,6 +43,7 @@
 </form>
 
 <h4>Events</h4>
+
 <p>Select for which event you want to receive Signal Messages.</p>
 <br>
 <br>
@@ -65,7 +66,6 @@
 	</div>
 </form>
 <hr/>
-
 
 <form class="form horizontal">	
 	<div class="control-group">
@@ -187,8 +187,8 @@
 </form>
 <hr/>
 
-
 <h4>Attachments</h4>
+
 <form class="form horizontal">
 	<div class="control-group">
 		<div class="control-group" title="{{ _('Attach Snapshots') }}">
@@ -201,20 +201,21 @@
 	</div>
 </form>
 
-<h5>Grouping</h5>
+<h4>Grouping</h4>
+
 <p>When enabled, messages will be grouped as specified</p>
 <form class="form horizontal">
 	<div class="control-group">
 		<div class="control-group" title="{{ _('When enabled, messages will be grouped as specified') }}">
 			<div class="controls">
 				<label class="checkbox">
-					<input type="radio" name="groupSettings" value="job" data-bind="checked: settings.plugins.signalclirestapi.groupsettings" /> {{ _('Messages are grouped by each job as it runs') }}
+					<input type="radio" name="groupSettings" value="job" style="transform: translate(0px,-4px);" data-bind="checked: settings.plugins.signalclirestapi.groupsettings" /> {{ _('Messages are grouped by each job as it runs') }}
 				</label>
 				<label class="checkbox">
-					<input type="radio" name="groupSettings" value="machine" data-bind="checked: settings.plugins.signalclirestapi.groupsettings" /> {{ _('Messages are grouped by source machine / printer (uses profile name)') }}
+					<input type="radio" name="groupSettings" value="machine" style="transform: translate(0px,-4px);" data-bind="checked: settings.plugins.signalclirestapi.groupsettings" /> {{ _('Messages are grouped by source machine / printer (uses profile name)') }}
 				</label>
 				<label class="checkbox">
-					<input type="radio" name="groupSettings" value="none" data-bind="checked: settings.plugins.signalclirestapi.groupsettings" /> {{ _('Messages will be sent to the recipients directly') }}
+					<input type="radio" name="groupSettings" value="none" style="transform: translate(0px,-4px);" data-bind="checked: settings.plugins.signalclirestapi.groupsettings" /> {{ _('Messages will be sent to the recipients directly') }}
 				</label>
 			</div>
 		</div>
@@ -222,6 +223,7 @@
 </form>
 
 <h4>Print Progress</h4>
+
 <p>When enabled, you will receive a status update for each percentage specified (comma delimited list).</p>
 <form class="form horizontal">	
 	<div class="control-group">

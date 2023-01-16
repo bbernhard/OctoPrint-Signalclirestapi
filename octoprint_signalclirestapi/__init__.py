@@ -2,14 +2,6 @@
 # coding=utf-8
 from __future__ import absolute_import
 
-# (Don't forget to remove me)
-# This is a basic skeleton for your plugin's __init__.py. You probably want to adjust the class name of your plugin
-# as well as the plugin mixins it's subclassing from. This is really just a basic skeleton to get you started,
-# defining your plugin as a template plugin, settings and asset plugin. Feel free to add or remove mixins
-# as necessary.
-#
-# Take a look at the documentation on what other plugin mixins are available.
-
 import octoprint.plugin
 import octoprint.util
 from octoprint.events import Events
@@ -44,7 +36,6 @@ import json
 
 # add device on master
 # signal-cli --config /home/.local/share/signal-cli -a {number} addDevice --uri "{uuid}"
-
 
 def signal_receive_thread(_plugin):
     valid_commands = ("STATUS", "PAUSE", "RESUME", "CANCEL", "STOP", "RESTART", "SHUTDOWN", "REBOOT")
@@ -85,6 +76,9 @@ def signal_receive_thread(_plugin):
                     msgs = receive_message(_plugin.url, _plugin.sender)
 
                 for msg in msgs:
+                    message = None
+                    groupId = None
+
                     if "envelope" in msg.keys() and "dataMessage" in msg["envelope"].keys():
                         dataMsg = msg["envelope"]["dataMessage"]
                         if "message" in dataMsg.keys(): message = dataMsg["message"].strip().upper()
@@ -95,7 +89,7 @@ def signal_receive_thread(_plugin):
                             continue
 
                         # we only want to respond to messages meant for us
-                        if not groupId is None and groupId == _plugin._group_id["internal_id"]:
+                        if groupId is None or groupId == _plugin._group_id["internal_id"]:
                             _plugin._logger.debug("signal_receive_thread: message=[{}] group=[{}]".format(message, groupId)) 
 
                             if message == "STATUS":
@@ -119,7 +113,7 @@ def signal_receive_thread(_plugin):
                                 cmd = _plugin._settings.global_get(["server", "commands", "systemRestartCommand"])
                                 subprocess.call(cmd, shell=True)
 
-                        elif not groupId is None:
+                        else:
                             # try again
                             tries = 0
                             while tries < 2:
@@ -444,10 +438,11 @@ class SignalclirestapiPlugin(octoprint.plugin.SettingsPlugin,
                 self._supported_tags["reason"] = payload["reason"]
 
         if event == Events.PRINT_STARTED:
-            self._lastProgress = 0
+            self._supported_tags["progress"] = 0
+            if self.create_group_for_every_print: self._group_id = None 
+            
             if self.enabled and self.print_started_event:
                 message = self.print_started_event_template.format(**self._supported_tags) 
-                if self.create_group_for_every_print: self._group_id = None 
                 self._send_message(message) 
         elif event == Events.PRINT_DONE:
             if self.enabled and self.print_done_event:
@@ -479,7 +474,7 @@ class SignalclirestapiPlugin(octoprint.plugin.SettingsPlugin,
             self._supported_tags["progress"] = progress
             self._supported_tags["filename"] = path
 
-            if progress in (0, 100) or path is None or len(path) == 0: 
+            if progress is None or progress in (0, 100) or path is None or len(path) == 0: 
                 message = "No job is currently active"
             else:  
                 message = self.send_print_progress_template.format(**self._supported_tags)
