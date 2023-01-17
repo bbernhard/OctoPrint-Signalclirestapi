@@ -42,15 +42,15 @@ def signal_receive_thread(_plugin):
 
     helpMsg = (
         "I respond to a number of different commands:\r\n\r\n" +
-        "\tstatus\t\t\t\tmachine / job status report\r\n" +
-        "\tpause\t\t\t\tpause current job (if active)\r\n" +
-        "\tresume\t\t\tresume current job (if paused)\r\n" +
-        "\tcancel\t\t\t\tcancel current job (if active)\r\n" +
-        "\tgcode ###\t\t\tsend gcode (if connected)\r\n" +
-        "\tconnect\t\t\tconnect to machine (if disconnected)\r\n" +
-        "\tdisconnect\t\tdisconnect machine (if connected)\r\n" +
-        "\tstop\t\t\t\t\tstops Octoprint (and me)\r\n" +
-        "\trestart\t\t\t\trestarts Octoprint (and me)\r\n" +
+        "\tstatus\t\t\t\tmachine / job status\r\n" +
+        "\tpause\t\t\t\tpause current job\r\n" +
+        "\tresume\t\t\tresume current job\r\n" +
+        "\tcancel\t\t\t\tcancel current job\r\n" +
+        "\tgcode ###\t\tsend gcode\r\n" +
+        "\tconnect\t\t\tconnect to machine\r\n" +
+        "\tdisconnect\t\tdisconnect machine\r\n" +
+        "\tstop\t\t\t\t\tstops Octoprint\r\n" +
+        "\trestart\t\t\t\trestarts Octoprint\r\n" +
         "\tshutdown\t\tshutdown our server\r\n" +
         "\treboot\t\t\t\treboot our server"
     )
@@ -103,7 +103,7 @@ def signal_receive_thread(_plugin):
                                 _plugin._printer.resume_print()
                             elif message == "CANCEL":
                                 _plugin._printer.cancel_print()
-                            elif message.startsWith("GCODE "):
+                            elif message.startswith("GCODE "):
                                 _plugin._printer.commands(message.replace("GCODE ", ""))
                             elif message == "CONNECT":
                                 _plugin._printer.connect()
