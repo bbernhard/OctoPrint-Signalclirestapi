@@ -38,20 +38,24 @@ import json
 # signal-cli --config /home/.local/share/signal-cli -a {number} addDevice --uri "{uuid}"
 
 def signal_receive_thread(_plugin):
-    valid_commands = ("STATUS", "PAUSE", "RESUME", "CANCEL", "GCODE", "CONNECT", "DISCONNECT", "STOP", "RESTART", "SHUTDOWN", "REBOOT")
+    valid_commands = ("STATUS", "PAUSE", "RESUME", "CANCEL", "GCODE", "TOOL", "BED", "CHAMBER", "CONNECT", "DISCONNECT", "SHELL", "STOP", "RESTART", "SHUTDOWN", "REBOOT")
 
     helpMsg = (
-        "I respond to a number of different commands:\r\n\r\n" +
-        "\tstatus\t\t\t\tmachine / job status\r\n" +
-        "\tpause\t\t\t\tpause current job\r\n" +
-        "\tresume\t\t\tresume current job\r\n" +
-        "\tcancel\t\t\t\tcancel current job\r\n" +
-        "\tgcode ###\t\tsend gcode\r\n" +
-        "\tconnect\t\t\tconnect to machine\r\n" +
-        "\tdisconnect\t\tdisconnect machine\r\n" +
-        "\tstop\t\t\t\t\tstops Octoprint\r\n" +
-        "\trestart\t\t\t\trestarts Octoprint\r\n" +
-        "\tshutdown\t\tshutdown our server\r\n" +
+        "I respond to a number of different commands:\n\n" +
+        "\tstatus\t\t\t\tmachine / job status\n" +
+        "\tpause\t\t\t\tpause current job\n" +
+        "\tresume\t\t\tresume current job\n" +
+        "\tcancel\t\t\t\tcancel current job\n" +
+        "\tgcode ###\t\tsend gcode\n" +
+        "\ttool ###\t\t\ttool temperature\n" +
+        "\tbed ###\t\t\tbed temperature\n" +
+        "\tchamber ###\tchamber temperature\n" +
+        "\tconnect\t\t\tconnect to machine\n" +
+        "\tdisconnect\t\tdisconnect machine\n" +
+        "\tshell ###\t\t\texecute command\n" +
+        "\tstop\t\t\t\t\tstops Octoprint\n" +
+        "\trestart\t\t\t\trestarts Octoprint\n" +
+        "\tshutdown\t\tshutdown our server\n" +
         "\treboot\t\t\t\treboot our server"
     )
 
@@ -60,6 +64,7 @@ def signal_receive_thread(_plugin):
         mode = api.mode()
 
         # cache our groups
+        # TODO:  need to trigger a reload when groups are created
         groups = api.list_groups()
 
         # use a websocket if json-rpc is enabled
@@ -67,7 +72,7 @@ def signal_receive_thread(_plugin):
             ws = websocket.create_connection(_plugin.url.replace("http://", "ws://") + "/v1/receive/" + _plugin.sender)
 
     except BaseException as e:
-        _plugin._logger.error("signal_receive_thread top level: [{}]".format(e))
+        _plugin._logger.exception("signal_receive_thread top level: [{}]".format(e))
         time.sleep(1)        
             
     while not _plugin._shutting_down:
@@ -84,47 +89,56 @@ def signal_receive_thread(_plugin):
 
                     if "envelope" in msg.keys() and "dataMessage" in msg["envelope"].keys():
                         dataMsg = msg["envelope"]["dataMessage"]
-                        if "message" in dataMsg.keys(): message = dataMsg["message"].strip().upper()
+                        if "message" in dataMsg.keys(): message = dataMsg["message"].strip()
                         if "groupInfo" in dataMsg.keys() and "groupId" in dataMsg["groupInfo"].keys(): groupId = dataMsg["groupInfo"]["groupId"]
-
-                        # display a help message if we receive something we do not understand
-                        if  message is None or message.split(" ")[0] not in valid_commands:
-                            _plugin._send_message(helpMsg, snapshot=False)    
-                            continue
 
                         # we only want to respond to messages meant for us
                         if groupId is None or groupId == _plugin._group_id["internal_id"]:
                             _plugin._logger.debug("signal_receive_thread: message=[{}] group=[{}]".format(message, groupId)) 
 
-                            if message == "STATUS":
-                                _plugin.on_print_progress("dummy", _plugin._supported_tags["filename"], _plugin._supported_tags["progress"], override=True)
-                            elif message == "PAUSE":
+                            # display a help message if we receive something we do not understand
+                            command = "" if message is None else message.split(" ")[0]
+                            if command.upper() not in valid_commands:
+                                _plugin._send_message(helpMsg, snapshot=False)    
+                                continue
+
+                            if command.upper() == "STATUS":
+                                _plugin.on_demand_status_report()
+                            elif command.upper() == "PAUSE":
                                 _plugin._printer.pause_print()
-                            elif message == "RESUME":
+                            elif command.upper() == "RESUME":
                                 _plugin._printer.resume_print()
-                            elif message == "CANCEL":
+                            elif command.upper() == "CANCEL":
                                 _plugin._printer.cancel_print()
-                            elif message.startswith("GCODE "):
-                                _plugin._printer.commands(message.replace("GCODE ", ""))
-                            elif message == "CONNECT":
+                            elif command.upper() == "GCODE":
+                                _plugin._printer.commands(message.replace(command + " ", ""))
+                            elif command.upper() == "TOOL":
+                                _plugin._printer.set_temperature("tool0", float(message.replace(command + " ", "")))
+                            elif command.upper() == "BED":
+                                _plugin._printer.set_temperature("bed", float(message.replace(command + " ", "")))
+                            elif command.upper() == "CHAMBER":
+                                _plugin._printer.set_temperature("chamber", float(message.replace(command + " ", "")))
+                            elif command.upper() == "CONNECT":
                                 _plugin._printer.connect()
-                            elif message == "DISCONNECT":
+                            elif command.upper() == "DISCONNECT":
                                 _plugin._printer.disconnect()
-                            elif message == "STOP":
+                            elif command.upper() == "SHELL":
+                                subprocess.call(message.replace(command + " ", ""), shell=True)
+                            elif command.upper() == "STOP":
                                 cmd = "sudo service octoprint stop"
                                 subprocess.call(cmd, shell=True)
-                            elif message == "RESTART":
+                            elif command.upper() == "RESTART":
                                 cmd = _plugin._settings.global_get(["server", "commands", "serverRestartCommand"])
                                 subprocess.call(cmd, shell=True)
-                            elif message == "SHUTDOWN":
+                            elif command.upper() == "SHUTDOWN":
                                 cmd = _plugin._settings.global_get(["server", "commands", "systemShutdownCommand"])
                                 subprocess.call(cmd, shell=True)
-                            elif message == "REBOOT":
+                            elif command.upper() == "REBOOT":
                                 cmd = _plugin._settings.global_get(["server", "commands", "systemRestartCommand"])
                                 subprocess.call(cmd, shell=True)
 
         except BaseException as e:
-            _plugin._logger.error("signal_receive_thread: [{}]".format(e))
+            _plugin._logger.exception("signal_receive_thread: [{}]".format(e))
 
             # let's try to re-initialize things (this may not go well)
             api = SignalCliRestApi(_plugin.url, _plugin.sender)
@@ -183,7 +197,16 @@ def get_supported_tags():
                 "host": socket.gethostname(),
                 "user": getpass.getuser(),
                 "progress": None,
-                "reason": "unknown"
+                "reason": "unknown",
+                "state": "unknown",
+                "tool_temp_actual": 0,
+                "tool_temp_target": 0,
+                "bed_temp_actual": 0,
+                "bed_temp_target": 0,
+                "chamber_temp_actual": 0,
+                "chamber_temp_target": 0,
+                "new_line": "\n",
+                "degrees": "\u00B0"
            }
 
 class SignalclirestapiPlugin(octoprint.plugin.SettingsPlugin,
@@ -232,7 +255,10 @@ class SignalclirestapiPlugin(octoprint.plugin.SettingsPlugin,
             sendprintprogress=True,
             printergroupid={},
             progressintervals="20,40,60,80",
-            sendprintprogresstemplate="OctoPrint@{host}: {filename}: Progess: {progress}%"
+            sendprintprogresstemplate="OctoPrint@{host}: {filename}: Progess: {progress}%",
+            notitysystemevents=False,
+            notityconnnectionevents=False,
+            statusreporttemplate="OctoPrint@{host}{new_line}Machine State: {state}{new_line}Job State: {filename} / {progress}{new_line}Tool Temperature: {tool_temp_actual}{degrees} / {tool_temp_target}{degrees}{new_line}Bed Temperature: {bed_temp_actual}{degrees} / {bed_temp_target}{degrees}"
         ) 
 
     def get_settings_version(self):
@@ -269,6 +295,14 @@ class SignalclirestapiPlugin(octoprint.plugin.SettingsPlugin,
     @property
     def enabled(self):
         return self._settings.get_boolean(["enabled"])
+
+    @property
+    def notity_system_events(self):
+        return self._settings.get_boolean(["notitysystemevents"])
+
+    @property
+    def notity_connnection_events(self):
+        return self._settings.get_boolean(["notityconnnectionevents"])
 
     @property
     def url(self):
@@ -366,7 +400,11 @@ class SignalclirestapiPlugin(octoprint.plugin.SettingsPlugin,
     @property
     def print_failed_event_template(self):
         return self._settings.get(["printfailedeventtemplate"])
-        
+
+    @property
+    def send_status_report_template(self):
+        return self._settings.get(["statusreporttemplate"])
+
     def _create_group_if_not_exists(self):
         if self._group_id is None:
             try:
@@ -417,11 +455,7 @@ class SignalclirestapiPlugin(octoprint.plugin.SettingsPlugin,
             self._logger.exception("Couldn't send signal message: %s", str(e))         
 
     def on_event(self, event, payload):
-        if event == Events.SHUTDOWN: 
-            self._shutting_down = True
-            self._logger.debug("triggering receive client shutdown")
-            return
-            
+        # populate tags managed via event payload data
         if payload is not None:
             if "name" in payload:
                 self._supported_tags["filename"] = payload["name"]
@@ -430,50 +464,80 @@ class SignalclirestapiPlugin(octoprint.plugin.SettingsPlugin,
             if "reason" in payload:
                 self._supported_tags["reason"] = payload["reason"]
 
+        # populate tags managed elsewhere
+        self.update_supported_tags()
+
+        # special cases for PRINT_STARTED and SHUTDOWN
         if event == Events.PRINT_STARTED:
             self._supported_tags["progress"] = 0
             if self.create_group_for_every_print: self._group_id = None 
-
             if self.enabled and self.print_started_event:
                 message = self.print_started_event_template.format(**self._supported_tags) 
                 self._send_message(message) 
-        elif event == Events.PRINT_DONE:
-            if self.enabled and self.print_done_event:
-                message = self.print_done_event_template.format(**self._supported_tags)
-                self._send_message(message)
-        elif event == Events.PRINT_FAILED:
-            if self.enabled and self.print_failed_event:
-                message = self.print_failed_event_template.format(**self._supported_tags)
-                self._send_message(message)
-        elif event == Events.PRINT_CANCELLED:
-            if self.enabled and self.print_cancelled_event:
-                message = self.print_cancelled_event_template.format(**self._supported_tags)
-                self._send_message(message)
-        elif event == Events.PRINT_PAUSED:
-            if self.enabled and self.print_paused_event:
-                message = self.print_paused_event_template.format(**self._supported_tags)
-                self._send_message(message)
-        elif event == Events.FILAMENT_CHANGE:
-            if self.enabled and self.filament_change_event:
-                message = self.filament_change_event_template.format(**self._supported_tags)
-                self._send_message(message)
-        elif event == Events.PRINT_RESUMED:
-            if self.enabled and self.print_resumed_event:
-                message = self.print_resumed_event_template.format(**self._supported_tags)
-                self._send_message(message)
+            return
+        elif event == Events.SHUTDOWN: 
+            if self.enabled and self.notity_system_events:
+                self._send_message("OctoPrint@{host}: Shutting down".format(**self._supported_tags))        
+            self._shutting_down = True
+            self._logger.debug("triggering receive client shutdown")
+            return
+            
+        # bail if notifications are not enabled
+        if not self.enabled:
+            return
 
-    def on_print_progress(self, storage, path, progress, override=False):
-        if self.enabled and (self.send_print_progress or override):
+        if event == Events.STARTUP and self.notity_system_events:
+            self._send_message("OctoPrint@{host}: Started".format(**self._supported_tags))
+        elif event == Events.CONNECTED and self.notity_connnection_events:
+            self._send_message("OctoPrint@{host}: Connected".format(**self._supported_tags))
+        elif event == Events.DISCONNECTED and self.notity_connnection_events:
+            self._send_message("OctoPrint@{host}: Disconnected".format(**self._supported_tags))
+        elif event == Events.PRINT_DONE and self.print_done_event:
+            message = self.print_done_event_template.format(**self._supported_tags)
+            self._send_message(message)
+        elif event == Events.PRINT_FAILED and self.print_failed_event:
+            message = self.print_failed_event_template.format(**self._supported_tags)
+            self._send_message(message)
+        elif event == Events.PRINT_CANCELLED and self.print_cancelled_event:
+            message = self.print_cancelled_event_template.format(**self._supported_tags)
+            self._send_message(message)
+        elif event == Events.PRINT_PAUSED and self.print_paused_event:
+            message = self.print_paused_event_template.format(**self._supported_tags)
+            self._send_message(message)
+        elif event == Events.FILAMENT_CHANGE and self.filament_change_event:
+            message = self.filament_change_event_template.format(**self._supported_tags)
+            self._send_message(message)
+        elif event == Events.PRINT_RESUMED and self.print_resumed_event:
+            message = self.print_resumed_event_template.format(**self._supported_tags)
+            self._send_message(message)
+
+    def on_print_progress(self, storage, path, progress):
+        if self.enabled and self.send_print_progress:
             self._supported_tags["progress"] = progress
             self._supported_tags["filename"] = path
 
-            if progress is None or progress in (0, 100) or path is None or len(path) == 0: 
-                message = "No job is currently active"
-            else:  
-                message = self.send_print_progress_template.format(**self._supported_tags)
+            # populate tags managed elsewhere
+            self.update_supported_tags()
 
-            if str(progress) in self.print_progress_intervals or override:
+            message = self.send_print_progress_template.format(**self._supported_tags)
+
+            if str(progress) in self.print_progress_intervals:
                 self._send_message(message)
+
+    def on_demand_status_report(self):
+        if self.enabled:
+            # populate tags managed elsewhere
+            self.update_supported_tags()
+            tags = self._supported_tags.copy()
+
+            if self._printer.is_printing() or self._printer.is_paused() or self._printer.is_pausing():
+                tags["progress"] = "{}%}".format(self._supported_tags["progress"])
+            else:
+                tags["filename"] = "*"
+                tags["progress"] = "*"
+
+            message = self.send_status_report_template.format(**tags)
+            self._send_message(message)
 
     def get_api_commands(self):
         return dict(testMessage=["sender", "recipients", "url"]);
@@ -512,6 +576,29 @@ class SignalclirestapiPlugin(octoprint.plugin.SettingsPlugin,
                 return flask.jsonify(dict(success=False, msg=str(e)))
             
             return flask.jsonify(dict(success=False, msg="Success! Please check your phone."))
+
+    def update_supported_tags(self):
+        self._supported_tags["state"] = self._printer.get_state_string()
+
+        temps = self._printer.get_current_temperatures()
+        if temps:
+            if "tool0" in temps.keys():
+                self._supported_tags["tool_temp_actual"] = temps["tool0"]["actual"]
+                self._supported_tags["tool_temp_target"] = temps["tool0"]["target"]
+            if "bed" in temps.keys():
+                self._supported_tags["bed_temp_actual"] = temps["bed"]["actual"]
+                self._supported_tags["bed_temp_target"] = temps["bed"]["target"]
+            if "chamber" in temps.keys():
+                self._supported_tags["chamber_temp_actual"] = temps["chamber"]["actual"]
+                self._supported_tags["chamber_temp_target"] = temps["chamber"]["target"]
+        else:
+                self._supported_tags["tool_temp_actual"] = "*"
+                self._supported_tags["tool_temp_target"] = "*"
+                self._supported_tags["bed_temp_actual"] = "*"
+                self._supported_tags["bed_temp_target"] = "*"
+                self._supported_tags["chamber_temp_actual"] = "*"
+                self._supported_tags["chamber_temp_target"] = "*"
+
 
     def get_template_configs(self):
         return [

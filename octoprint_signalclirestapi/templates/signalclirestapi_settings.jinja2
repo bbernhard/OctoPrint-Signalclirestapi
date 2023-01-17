@@ -1,249 +1,293 @@
-<h3>Signal Messenger Configuration</h3>
+<style>
+	.body {
+	  padding: 0;
+	  margin: 0;
+	}
 
-<h4>Connection</h4>
+	.wrapper {
+	  display: flex;
+	  flex-direction: column;
+	  height: 70vh;
+	}
 
-<form class="form-horizontal">
-	<div class="control-group">
-		<div class="control-group" title="{{ _('Enable Notifications') }}">
-			<div class="controls">
-				<label class="checkbox">
-					<input type="checkbox" data-bind="checked: settings.plugins.signalclirestapi.enabled" /> {{ _('Enable Notifications') }}
-				</label>
+	.header {
+	  position:relative;
+	  flex: 0 0 auto;
+	}
+
+	.content {
+	  overflow-y:scroll;
+	  flex: 1 1 auto;
+	}
+</style>
+
+<div class="wrapper">
+	<div class="header">
+		<h3>Signal Notifications</h3>
+		<hr>
+	</div>
+	<div class="content">
+		<h4>Connection</h4>
+
+		<form class="form-horizontal">
+			<div class="control-group">
+				<div class="control-group" title="{{ _('Enable Notifications') }}">
+					<div class="controls">
+						<label class="checkbox">
+							<input type="checkbox" data-bind="checked: settings.plugins.signalclirestapi.enabled" /> {{ _('Enable Notifications') }}
+						</label>
+						<!-- ko if: settings.plugins.signalclirestapi.enabled() > ""  -->
+							<label class="checkbox" style="transform: translate(20px,0px);">
+								<input type="checkbox" data-bind="checked: settings.plugins.signalclirestapi.notitysystemevents" /> {{ _('System Event Notifications') }}
+							</label>
+							<label class="checkbox" style="transform: translate(20px,0px);">
+								<input type="checkbox"data-bind="checked: settings.plugins.signalclirestapi.notityconnnectionevents" /> {{ _('Connection Event Notifications') }}
+							</label>
+						<!-- /ko -->
+					</div>
+				</div>
+				
+				<div class="control-group" title="{{ _('REST API URL') }}">
+					<label class="control-label">{{ _('REST API URL') }}</label>
+					<div class="controls">
+						<input type="text" style="width: 400px" class="input-block-level" data-bind="value: settings.plugins.signalclirestapi.url" id="urlInput">
+					</div>
+				</div>
+
+				<div class="control-group" title="{{ _('Sender Number') }}">
+					<label class="control-label">{{ _('Sender Number') }}</label>
+					<div class="controls">
+						<input type="text" style="width: 400px" class="input-block-level" data-bind="value: settings.plugins.signalclirestapi.sendernr" id="senderInput">
+					</div>
+				</div>
+
+				<div class="control-group" title="{{ _('Recipients') }}">
+					<label class="control-label">{{ _('Recipients (use comma to specify multiple recipients)') }}</label>
+					<div class="controls">
+						<input type="text" style="width: 400px" class="input-block-level" data-bind="value: settings.plugins.signalclirestapi.recipientnrs" id="recipientsInput">
+					</div>
+				</div>
+				
+				<div class="control-group">
+					<div class="controls">
+						<button class="btn btn-primary" data-bind="click: testMessage" data-toggle="tooltip" data-placement="bottom" title="Click here to send a test message">{{ _('Test') }} <i class="icon-spinner icon-spin" id="testMessageButtonLoadingSpinner"></i></button><span id="testMessageInfo"></span>
+					</div>
+				</div>
+				
 			</div>
-		</div>
+		</form>
 		
-		<div class="control-group" title="{{ _('REST API URL') }}">
-			<label class="control-label">{{ _('REST API URL') }}</label>
-			<div class="controls">
-				<input type="text" class="input-block-level" data-bind="value: settings.plugins.signalclirestapi.url" id="urlInput">
+		<h4>Events</h4>
+		<p>Select for which event you want to receive Signal Messages.</p>
+		<form class="form horizontal">	
+			<div class="control-group">
+				<div class="control-group" title="{{ _('Print Started') }}">
+					<div class="controls">
+						<label class="checkbox">
+							<input type="checkbox" data-bind="checked: settings.plugins.signalclirestapi.printstartedevent" /> {{ _('Print Started') }}
+						</label>
+					</div>
+				</div>
+				<p>Supported Tags: <code>{user}</code>, <code>{host}</code>, <code>{filename}</code>, <code>{state}</code>, <code>{progress}</code>, <code>{tool_temp_actual}</code>, <code>{tool_temp_target}</code>, <code>{bed_temp_actual}</code>, <code>{bed_temp_target}</code>, <code>{chamber_temp_actual}</code>, <code>{chamber_temp_target}</code>, <code>{new_line}</code>, <code>{degrees}</code></p>
+				<div class="control-group" title="{{ _('Body:') }}">
+					<label class="control-label">{{ _('Body:') }}</label>
+					<div class="controls">
+						<input type="text" class="input-block-level" data-bind="value: settings.plugins.signalclirestapi.printstartedeventtemplate">
+					</div>
+				</div>
 			</div>
-		</div>
+		</form>
+		<hr/>
 
-		<div class="control-group" title="{{ _('Sender Number') }}">
-			<label class="control-label">{{ _('Sender Number') }}</label>
-			<div class="controls">
-				<input type="text" class="input-block-level" data-bind="value: settings.plugins.signalclirestapi.sendernr" id="senderInput">
+		<form class="form horizontal">	
+			<div class="control-group">
+				<div class="control-group" title="{{ _('Print Done') }}">
+					<div class="controls">
+						<label class="checkbox">
+							<input type="checkbox" data-bind="checked: settings.plugins.signalclirestapi.printdoneevent" /> {{ _('Print Done') }}
+						</label>
+					</div>
+				</div>
+				<p>Supported Tags: <code>{user}</code>, <code>{host}</code>, <code>{filename}</code>, <code>{state}</code>, <code>{progress}</code>, <code>{tool_temp_actual}</code>, <code>{tool_temp_target}</code>, <code>{bed_temp_actual}</code>, <code>{bed_temp_target}</code>, <code>{chamber_temp_actual}</code>, <code>{chamber_temp_target}</code>, <code>{new_line}</code>, <code>{degrees}</code></p>
+				<div class="control-group" title="{{ _('Body:') }}">
+					<label class="control-label">{{ _('Body:') }}</label>
+					<div class="controls">
+						<input type="text" class="input-block-level" data-bind="value: settings.plugins.signalclirestapi.printdoneeventtemplate">
+					</div>
+				</div>
 			</div>
-		</div>
+		</form>
+		<hr/>
 
-		<div class="control-group" title="{{ _('Recipients') }}">
-			<label class="control-label">{{ _('Recipients (use comma to specify multiple recipients)') }}</label>
-			<div class="controls">
-				<input type="text" class="input-block-level" data-bind="value: settings.plugins.signalclirestapi.recipientnrs" id="recipientsInput">
+		<form class="form horizontal">	
+			<div class="control-group">
+				<div class="control-group" title="{{ _('Print Failed') }}">
+					<div class="controls">
+						<label class="checkbox">
+							<input type="checkbox" data-bind="checked: settings.plugins.signalclirestapi.printfailedevent" /> {{ _('Print Failed') }}
+						</label>
+					</div>
+				</div>
+				<p>Supported Tags: <code>{user}</code>, <code>{host}</code>, <code>{filename}</code>, <code>{state}</code>, <code>{progress}</code>, <code>{tool_temp_actual}</code>, <code>{tool_temp_target}</code>, <code>{bed_temp_actual}</code>, <code>{bed_temp_target}</code>, <code>{chamber_temp_actual}</code>, <code>{chamber_temp_target}</code>, <code>{new_line}</code>, <code>{degrees}</code></p>
+				<div class="control-group" title="{{ _('Body:') }}">
+					<label class="control-label">{{ _('Body:') }}</label>
+					<div class="controls">
+						<input type="text" class="input-block-level" data-bind="value: settings.plugins.signalclirestapi.printfailedeventtemplate">
+					</div>
+				</div>
 			</div>
-		</div>
+		</form>
+		<hr/>
+
+		<form class="form horizontal">	
+			<div class="control-group">
+				<div class="control-group" title="{{ _('Print Paused') }}">
+					<div class="controls">
+						<label class="checkbox">
+							<input type="checkbox" data-bind="checked: settings.plugins.signalclirestapi.printpausedevent" /> {{ _('Print Paused') }}
+						</label>
+					</div>
+				</div>
+				<p>Supported Tags: <code>{user}</code>, <code>{host}</code>, <code>{filename}</code>, <code>{state}</code>, <code>{progress}</code>, <code>{tool_temp_actual}</code>, <code>{tool_temp_target}</code>, <code>{bed_temp_actual}</code>, <code>{bed_temp_target}</code>, <code>{chamber_temp_actual}</code>, <code>{chamber_temp_target}</code>, <code>{new_line}</code>, <code>{degrees}</code></p>
+				<div class="control-group" title="{{ _('Body:') }}">
+					<label class="control-label">{{ _('Body:') }}</label>
+					<div class="controls">
+						<input type="text" class="input-block-level" data-bind="value: settings.plugins.signalclirestapi.printpausedeventtemplate">
+					</div>
+				</div>
+			</div>
+		</form>
+		<hr/>
+
+		<form class="form horizontal">
+				<div class="control-group">
+						<div class="control-group" title="{{ _('Filament Change') }}">
+								<div class="controls">
+										<label class="checkbox">
+												<input type="checkbox" data-bind="checked: settings.plugins.signalclirestapi.filamentchangeevent" /> {{ _('Filament Change') }}
+										</label>
+								</div>
+						</div>
+						<p>Supported Tags: <code>{user}</code>, <code>{host}</code>, <code>{filename}</code>, <code>{state}</code>, <code>{progress}</code>, <code>{tool_temp_actual}</code>, <code>{tool_temp_target}</code>, <code>{bed_temp_actual}</code>, <code>{bed_temp_target}</code>, <code>{chamber_temp_actual}</code>, <code>{chamber_temp_target}</code>, <code>{new_line}</code>, <code>{degrees}</code></p>
+						<div class="control-group" title="{{ _('Body:') }}">
+								<label class="control-label">{{ _('Body:') }}</label>
+								<div class="controls">
+										<input type="text" class="input-block-level" data-bind="value: settings.plugins.signalclirestapi.filamentchangeeventtemplate">
+								</div>
+						</div>
+				</div>
+		</form>
+		<hr/>
+
+		<form class="form horizontal">	
+			<div class="control-group">
+				<div class="control-group" title="{{ _('Print Resumed') }}">
+					<div class="controls">
+						<label class="checkbox">
+							<input type="checkbox" data-bind="checked: settings.plugins.signalclirestapi.printresumedevent" /> {{ _('Print Resumed') }}
+						</label>
+					</div>
+				</div>
+				<p>Supported Tags: <code>{user}</code>, <code>{host}</code>, <code>{filename}</code>, <code>{state}</code>, <code>{progress}</code>, <code>{tool_temp_actual}</code>, <code>{tool_temp_target}</code>, <code>{bed_temp_actual}</code>, <code>{bed_temp_target}</code>, <code>{chamber_temp_actual}</code>, <code>{chamber_temp_target}</code>, <code>{new_line}</code>, <code>{degrees}</code></p>
+				<div class="control-group" title="{{ _('Body:') }}">
+					<label class="control-label">{{ _('Body:') }}</label>
+					<div class="controls">
+						<input type="text" class="input-block-level" data-bind="value: settings.plugins.signalclirestapi.printresumedeventtemplate">
+					</div>
+				</div>
+			</div>
+		</form>
+		<hr/>
+
+		<form class="form horizontal">	
+			<div class="control-group">
+				<div class="control-group" title="{{ _('Print Cancelled') }}">
+					<div class="controls">
+						<label class="checkbox">
+							<input type="checkbox" data-bind="checked: settings.plugins.signalclirestapi.printcancelledevent" /> {{ _('Print Cancelled') }}
+						</label>
+					</div>
+				</div>
+				<p>Supported Tags: <code>{user}</code>, <code>{host}</code>, <code>{filename}</code>, <code>{state}</code>, <code>{progress}</code>, <code>{tool_temp_actual}</code>, <code>{tool_temp_target}</code>, <code>{bed_temp_actual}</code>, <code>{bed_temp_target}</code>, <code>{chamber_temp_actual}</code>, <code>{chamber_temp_target}</code>, <code>{new_line}</code>, <code>{degrees}</code></p>
+				<div class="control-group" title="{{ _('Body:') }}">
+					<label class="control-label">{{ _('Body:') }}</label>
+					<div class="controls">
+						<input type="text" class="input-block-level" data-bind="value: settings.plugins.signalclirestapi.printcancelledeventtemplate">
+					</div>
+				</div>
+			</div>
+		</form>
+
+		<h4>Attachments</h4>
+		<form class="form horizontal">
+			<div class="control-group">
+				<div class="control-group" title="{{ _('Attach Snapshots') }}">
+					<div class="controls">
+						<label class="checkbox">
+							<input type="checkbox" data-bind="checked: settings.plugins.signalclirestapi.attachsnapshots" id="attachSnapshotsInput" /> {{ _('Attach Snapshots') }}
+						</label>
+					</div>
+				</div>
+			</div>
+		</form>
 		
- 		<div class="control-group">
-        	<div class="controls">
-				<button class="btn btn-primary" data-bind="click: testMessage" data-toggle="tooltip" data-placement="bottom" title="Click here to send a test message">{{ _('Test') }} <i class="icon-spinner icon-spin" id="testMessageButtonLoadingSpinner"></i></button><span id="testMessageInfo"></span>
+		<h4>Message Grouping</h4>
+		<p>When enabled, messages will be grouped as specified</p>
+		<form class="form horizontal">
+			<div class="control-group">
+				<div class="control-group" title="{{ _('When enabled, messages will be grouped as specified') }}">
+					<div class="controls">
+						<label class="checkbox">
+							<input type="radio" name="groupSettings" value="job" style="transform: translate(0px,-4px);" data-bind="checked: settings.plugins.signalclirestapi.groupsettings" /> {{ _('Messages are grouped by each job as it runs') }}
+						</label>
+						<label class="checkbox">
+							<input type="radio" name="groupSettings" value="machine" style="transform: translate(0px,-4px);" data-bind="checked: settings.plugins.signalclirestapi.groupsettings" /> {{ _('Messages are grouped by source machine / printer (uses profile name)') }}
+						</label>
+						<label class="checkbox">
+							<input type="radio" name="groupSettings" value="none" style="transform: translate(0px,-4px);" data-bind="checked: settings.plugins.signalclirestapi.groupsettings" /> {{ _('Messages will be sent to the recipients directly') }}
+						</label>
+					</div>
+				</div>
 			</div>
-		</div>
-		
+		</form>
+
+		<h4>Status Reporting</h4>
+		<p>Manage job progress and on-demand status reports</p>
+		<form class="form horizontal">	
+			<div class="control-group">
+				<div class="control-group" title="{{ _('Send Print Progress') }}">
+					<div class="controls">
+						<label class="checkbox">
+							<input type="checkbox" data-bind="checked: settings.plugins.signalclirestapi.sendprintprogress" /> {{ _('Send Print Progress') }}
+						</label>
+						<p>When enabled, you will receive a status update for each percentage specified (comma delimited list).</p>
+						<input type="text" class="input-mini" style="width: 200px" data-bind="value: settings.plugins.signalclirestapi.progressintervals">
+					</div>
+				</div>
+				<p>Supported Tags: <code>{user}</code>, <code>{host}</code>, <code>{filename}</code>, <code>{state}</code>, <code>{progress}</code>, <code>{tool_temp_actual}</code>, <code>{tool_temp_target}</code>, <code>{bed_temp_actual}</code>, <code>{bed_temp_target}</code>, <code>{chamber_temp_actual}</code>, <code>{chamber_temp_target}</code>, <code>{new_line}</code>, <code>{degrees}</code></p>
+				<div class="control-group" title="{{ _('Body:') }}">
+					<label class="control-label">{{ _('Body:') }}</label>
+					<div class="controls">
+						<input type="text" class="input-block-level" data-bind="value: settings.plugins.signalclirestapi.sendprintprogresstemplate">
+					</div>
+				</div>
+			</div>
+		</form>
+		<hr/>
+
+		<form class="form horizontal">	
+			<div class="control-group">
+				<p>
+					{{ _('Status Report (on demand)') }}
+				</p>
+				<p>Supported Tags: <code>{user}</code>, <code>{host}</code>, <code>{filename}</code>, <code>{state}</code>, <code>{progress}</code>, <code>{tool_temp_actual}</code>, <code>{tool_temp_target}</code>, <code>{bed_temp_actual}</code>, <code>{bed_temp_target}</code>, <code>{chamber_temp_actual}</code>, <code>{chamber_temp_target}</code>, <code>{new_line}</code>, <code>{degrees}</code></p>
+				<div class="control-group" title="{{ _('Body:') }}">
+					<label class="control-label">{{ _('Body:') }}</label>
+					<div class="controls">
+						<input type="text" class="input-block-level" data-bind="value: settings.plugins.signalclirestapi.statusreporttemplate">
+					</div>
+				</div>
+			</div>
+		</form>
 	</div>
-</form>
-
-<h4>Events</h4>
-
-<p>Select for which event you want to receive Signal Messages.</p>
-<br>
-<br>
-<form class="form horizontal">	
-	<div class="control-group">
-		<div class="control-group" title="{{ _('Print Started') }}">
-			<div class="controls">
-				<label class="checkbox">
-					<input type="checkbox" data-bind="checked: settings.plugins.signalclirestapi.printstartedevent" /> {{ _('Print Started') }}
-				</label>
-			</div>
-		</div>
-		<p>Supported Tags: <code>{filename}</code></p>
-		<div class="control-group" title="{{ _('Body:') }}">
-			<label class="control-label">{{ _('Body:') }}</label>
-			<div class="controls">
-				<input type="text" class="input-block-level" data-bind="value: settings.plugins.signalclirestapi.printstartedeventtemplate">
-			</div>
-		</div>
-	</div>
-</form>
-<hr/>
-
-<form class="form horizontal">	
-	<div class="control-group">
-		<div class="control-group" title="{{ _('Print Done') }}">
-			<div class="controls">
-				<label class="checkbox">
-					<input type="checkbox" data-bind="checked: settings.plugins.signalclirestapi.printdoneevent" /> {{ _('Print Done') }}
-				</label>
-			</div>
-		</div>
-		<p>Supported Tags: <code>{user}</code>, <code>{host}</code>, <code>filename</code>, <code>elapsed_time</code></p>
-		<div class="control-group" title="{{ _('Body:') }}">
-			<label class="control-label">{{ _('Body:') }}</label>
-			<div class="controls">
-				<input type="text" class="input-block-level" data-bind="value: settings.plugins.signalclirestapi.printdoneeventtemplate">
-			</div>
-		</div>
-	</div>
-</form>
-<hr/>
-
-<form class="form horizontal">	
-	<div class="control-group">
-		<div class="control-group" title="{{ _('Print Failed') }}">
-			<div class="controls">
-				<label class="checkbox">
-					<input type="checkbox" data-bind="checked: settings.plugins.signalclirestapi.printfailedevent" /> {{ _('Print Failed') }}
-				</label>
-			</div>
-		</div>
-		<p>Supported Tags: <code>{user}</code>, <code>{host}</code>, <code>filename</code>, <code>elapsed_time</code>, <code>reason</code></p>
-		<div class="control-group" title="{{ _('Body:') }}">
-			<label class="control-label">{{ _('Body:') }}</label>
-			<div class="controls">
-				<input type="text" class="input-block-level" data-bind="value: settings.plugins.signalclirestapi.printfailedeventtemplate">
-			</div>
-		</div>
-	</div>
-</form>
-<hr/>
-
-<form class="form horizontal">	
-	<div class="control-group">
-		<div class="control-group" title="{{ _('Print Paused') }}">
-			<div class="controls">
-				<label class="checkbox">
-					<input type="checkbox" data-bind="checked: settings.plugins.signalclirestapi.printpausedevent" /> {{ _('Print Paused') }}
-				</label>
-			</div>
-		</div>
-		<p>Supported Tags: <code>{user}</code>, <code>{host}</code>, <code>filename</code></p>
-		<div class="control-group" title="{{ _('Body:') }}">
-			<label class="control-label">{{ _('Body:') }}</label>
-			<div class="controls">
-				<input type="text" class="input-block-level" data-bind="value: settings.plugins.signalclirestapi.printpausedeventtemplate">
-			</div>
-		</div>
-	</div>
-</form>
-<hr/>
-
-<form class="form horizontal">
-        <div class="control-group">
-                <div class="control-group" title="{{ _('Filament Change') }}">
-                        <div class="controls">
-                                <label class="checkbox">
-                                        <input type="checkbox" data-bind="checked: settings.plugins.signalclirestapi.filamentchangeevent" /> {{ _('Filament Change') }}
-                                </label>
-                        </div>
-                </div>
-                <p>Supported Tags: <code>{user}</code>, <code>{host}</code></p>
-                <div class="control-group" title="{{ _('Body:') }}">
-                        <label class="control-label">{{ _('Body:') }}</label>
-                        <div class="controls">
-                                <input type="text" class="input-block-level" data-bind="value: settings.plugins.signalclirestapi.filamentchangeeventtemplate">
-                        </div>
-                </div>
-        </div>
-</form>
-<hr/>
-
-<form class="form horizontal">	
-	<div class="control-group">
-		<div class="control-group" title="{{ _('Print Resumed') }}">
-			<div class="controls">
-				<label class="checkbox">
-					<input type="checkbox" data-bind="checked: settings.plugins.signalclirestapi.printresumedevent" /> {{ _('Print Resumed') }}
-				</label>
-			</div>
-		</div>
-		<p>Supported Tags: <code>{user}</code>, <code>{host}</code>, <code>filename</code></p>
-		<div class="control-group" title="{{ _('Body:') }}">
-			<label class="control-label">{{ _('Body:') }}</label>
-			<div class="controls">
-				<input type="text" class="input-block-level" data-bind="value: settings.plugins.signalclirestapi.printresumedeventtemplate">
-			</div>
-		</div>
-	</div>
-</form>
-<hr/>
-
-<form class="form horizontal">	
-	<div class="control-group">
-		<div class="control-group" title="{{ _('Print Cancelled') }}">
-			<div class="controls">
-				<label class="checkbox">
-					<input type="checkbox" data-bind="checked: settings.plugins.signalclirestapi.printcancelledevent" /> {{ _('Print Cancelled') }}
-				</label>
-			</div>
-		</div>
-		<p>Supported Tags: <code>filename</code></p>
-		<div class="control-group" title="{{ _('Body:') }}">
-			<label class="control-label">{{ _('Body:') }}</label>
-			<div class="controls">
-				<input type="text" class="input-block-level" data-bind="value: settings.plugins.signalclirestapi.printcancelledeventtemplate">
-			</div>
-		</div>
-	</div>
-</form>
-<hr/>
-
-<h4>Attachments</h4>
-
-<form class="form horizontal">
-	<div class="control-group">
-		<div class="control-group" title="{{ _('Attach Snapshots') }}">
-			<div class="controls">
-				<label class="checkbox">
-					<input type="checkbox" data-bind="checked: settings.plugins.signalclirestapi.attachsnapshots" id="attachSnapshotsInput" /> {{ _('Attach Snapshots') }}
-				</label>
-			</div>
-		</div>
-	</div>
-</form>
-
-<h4>Grouping</h4>
-
-<p>When enabled, messages will be grouped as specified</p>
-<form class="form horizontal">
-	<div class="control-group">
-		<div class="control-group" title="{{ _('When enabled, messages will be grouped as specified') }}">
-			<div class="controls">
-				<label class="checkbox">
-					<input type="radio" name="groupSettings" value="job" style="transform: translate(0px,-4px);" data-bind="checked: settings.plugins.signalclirestapi.groupsettings" /> {{ _('Messages are grouped by each job as it runs') }}
-				</label>
-				<label class="checkbox">
-					<input type="radio" name="groupSettings" value="machine" style="transform: translate(0px,-4px);" data-bind="checked: settings.plugins.signalclirestapi.groupsettings" /> {{ _('Messages are grouped by source machine / printer (uses profile name)') }}
-				</label>
-				<label class="checkbox">
-					<input type="radio" name="groupSettings" value="none" style="transform: translate(0px,-4px);" data-bind="checked: settings.plugins.signalclirestapi.groupsettings" /> {{ _('Messages will be sent to the recipients directly') }}
-				</label>
-			</div>
-		</div>
-	</div>
-</form>
-
-<h4>Print Progress</h4>
-
-<p>When enabled, you will receive a status update for each percentage specified (comma delimited list).</p>
-<form class="form horizontal">	
-	<div class="control-group">
-		<div class="control-group" title="{{ _('Send Print Progress') }}">
-			<div class="controls">
-				<label class="checkbox">
-					<input type="checkbox" data-bind="checked: settings.plugins.signalclirestapi.sendprintprogress" /> {{ _('Send Print Progress') }}
-				</label>
-				<!-- ko if: settings.plugins.signalclirestapi.sendprintprogress -->
-					<input type="text" class="input-mini" style="width: 200px" data-bind="value: settings.plugins.signalclirestapi.progressintervals">
-				<!-- /ko -->
-			</div>
-		</div>
-		<p>Supported Tags: <code>host</code>, <code>filename</code>, <code>progress</code></p>
-		<div class="control-group" title="{{ _('Body:') }}">
-			<label class="control-label">{{ _('Body:') }}</label>
-			<div class="controls">
-				<input type="text" class="input-block-level" data-bind="value: settings.plugins.signalclirestapi.sendprintprogresstemplate">
-			</div>
-		</div>
-	</div>
-</form>
-<hr/>
+</div>
