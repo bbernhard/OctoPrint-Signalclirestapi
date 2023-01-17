@@ -38,7 +38,7 @@ import json
 # signal-cli --config /home/.local/share/signal-cli -a {number} addDevice --uri "{uuid}"
 
 def signal_receive_thread(_plugin):
-    valid_commands = ("STATUS", "PAUSE", "RESUME", "CANCEL", "STOP", "RESTART", "SHUTDOWN", "REBOOT")
+    valid_commands = ("STATUS", "PAUSE", "RESUME", "CANCEL", "CONNECT", "DISCONNECT", "STOP", "RESTART", "SHUTDOWN", "REBOOT")
 
     helpMsg = (
         "I respond to a number of different commands:\r\n\r\n" +
@@ -46,6 +46,8 @@ def signal_receive_thread(_plugin):
         "\tpause\t\t\t\tpause current job (if active)\r\n" +
         "\tresume\t\t\tresume current job (if paused)\r\n" +
         "\tcancel\t\t\t\tcancel current job (if active)\r\n" +
+        "\tconnect\t\t\tconnect to machine (if disconnected)\r\n" +
+        "\tdisconnect\t\tdisconnect machine (if connected)\r\n" +
         "\tstop\t\t\t\t\tstops Octoprint (and me)\r\n" +
         "\trestart\t\t\t\trestarts Octoprint (and me)\r\n" +
         "\tshutdown\t\tshutdown our server\r\n" +
@@ -100,6 +102,10 @@ def signal_receive_thread(_plugin):
                                 _plugin._printer.resume_print()
                             elif message == "CANCEL":
                                 _plugin._printer.cancel_print()
+                            elif message == "CONNECT":
+                                _plugin._printer.connect()
+                            elif message == "DISCONNECT":
+                                _plugin._printer.disconnect()
                             elif message == "STOP":
                                 cmd = "sudo service octoprint stop"
                                 subprocess.call(cmd, shell=True)
@@ -440,7 +446,7 @@ class SignalclirestapiPlugin(octoprint.plugin.SettingsPlugin,
         if event == Events.PRINT_STARTED:
             self._supported_tags["progress"] = 0
             if self.create_group_for_every_print: self._group_id = None 
-            
+
             if self.enabled and self.print_started_event:
                 message = self.print_started_event_template.format(**self._supported_tags) 
                 self._send_message(message) 
