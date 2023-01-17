@@ -38,7 +38,7 @@ import json
 # signal-cli --config /home/.local/share/signal-cli -a {number} addDevice --uri "{uuid}"
 
 def signal_receive_thread(_plugin):
-    valid_commands = ("STATUS", "PAUSE", "RESUME", "CANCEL", "CONNECT", "DISCONNECT", "STOP", "RESTART", "SHUTDOWN", "REBOOT")
+    valid_commands = ("STATUS", "PAUSE", "RESUME", "CANCEL", "GCODE", "CONNECT", "DISCONNECT", "STOP", "RESTART", "SHUTDOWN", "REBOOT")
 
     helpMsg = (
         "I respond to a number of different commands:\r\n\r\n" +
@@ -46,6 +46,7 @@ def signal_receive_thread(_plugin):
         "\tpause\t\t\t\tpause current job (if active)\r\n" +
         "\tresume\t\t\tresume current job (if paused)\r\n" +
         "\tcancel\t\t\t\tcancel current job (if active)\r\n" +
+        "\tgcode ###\t\t\tsend gcode (if connected)\r\n" +
         "\tconnect\t\t\tconnect to machine (if disconnected)\r\n" +
         "\tdisconnect\t\tdisconnect machine (if connected)\r\n" +
         "\tstop\t\t\t\t\tstops Octoprint (and me)\r\n" +
@@ -86,7 +87,7 @@ def signal_receive_thread(_plugin):
                         if "message" in dataMsg.keys(): message = dataMsg["message"].strip().upper()
                         if "groupInfo" in dataMsg.keys() and "groupId" in dataMsg["groupInfo"].keys(): groupId = dataMsg["groupInfo"]["groupId"]
 
-                        if not message in valid_commands:
+                        if not message.split(" ")[0] in valid_commands:
                             _plugin._send_message(helpMsg, snapshot=False)    
                             continue
 
@@ -102,6 +103,8 @@ def signal_receive_thread(_plugin):
                                 _plugin._printer.resume_print()
                             elif message == "CANCEL":
                                 _plugin._printer.cancel_print()
+                            elif message.startsWith("GCODE "):
+                                _plugin._printer.commands(message.replace("GCODE ", ""))
                             elif message == "CONNECT":
                                 _plugin._printer.connect()
                             elif message == "DISCONNECT":
@@ -213,9 +216,7 @@ class SignalclirestapiPlugin(octoprint.plugin.SettingsPlugin,
         self._settings_version = 2
     
     def on_after_startup(self):
-        receiveThread = threading.Thread(target=signal_receive_thread, args=(self,))
-        receiveThread.daemon = True
-        receiveThread.start()
+        receiveThread = threading.Thread(target=signal_receive_thread, daemon=True, args=(self,)).start()
 
         if self.create_group_by_printer and not self.printer_group_id is None:
             self._group_id = self.printer_group_id
