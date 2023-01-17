@@ -531,7 +531,7 @@ class SignalclirestapiPlugin(octoprint.plugin.SettingsPlugin,
             tags = self._supported_tags.copy()
 
             if self._printer.is_printing() or self._printer.is_paused() or self._printer.is_pausing():
-                tags["progress"] = "{}%}".format(self._supported_tags["progress"])
+                tags["progress"] = "{}%".format(self._supported_tags["progress"])
             else:
                 tags["filename"] = "*"
                 tags["progress"] = "*"
