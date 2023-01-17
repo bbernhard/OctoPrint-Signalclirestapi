@@ -87,6 +87,7 @@ def signal_receive_thread(_plugin):
                         if "message" in dataMsg.keys(): message = dataMsg["message"].strip().upper()
                         if "groupInfo" in dataMsg.keys() and "groupId" in dataMsg["groupInfo"].keys(): groupId = dataMsg["groupInfo"]["groupId"]
 
+                        # display a help message if we receive something we do not understand
                         if  message is None or message.split(" ")[0] not in valid_commands:
                             _plugin._send_message(helpMsg, snapshot=False)    
                             continue
@@ -122,21 +123,6 @@ def signal_receive_thread(_plugin):
                                 cmd = _plugin._settings.global_get(["server", "commands", "systemRestartCommand"])
                                 subprocess.call(cmd, shell=True)
 
-                        else:
-                            # try again
-                            tries = 0
-                            while tries < 2:
-                                for group in groups:
-                                    if group["internal_id"] == groupId:
-                                        _plugin._logger.debug("signal_receive_thread: rejecting message=[{}] group=[{}]".format(message, group["id"]))   
-                                        send_message(_plugin.url, _plugin.sender, "Try again", [group["id"]])
-                                        tries = 1
-                                        time.sleep(44)                                    
-                                        break
-                                #refresh our groups if not found and try one more time
-                                if tries < 1:
-                                    groups = api.list_groups()
-                                tries = tries + 1
         except BaseException as e:
             _plugin._logger.error("signal_receive_thread: [{}]".format(e))
 
