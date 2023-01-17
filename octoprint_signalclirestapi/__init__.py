@@ -87,7 +87,7 @@ def signal_receive_thread(_plugin):
                         if "message" in dataMsg.keys(): message = dataMsg["message"].strip().upper()
                         if "groupInfo" in dataMsg.keys() and "groupId" in dataMsg["groupInfo"].keys(): groupId = dataMsg["groupInfo"]["groupId"]
 
-                        if not message.split(" ")[0] in valid_commands:
+                        if  message is None or message.split(" ")[0] not in valid_commands:
                             _plugin._send_message(helpMsg, snapshot=False)    
                             continue
 
