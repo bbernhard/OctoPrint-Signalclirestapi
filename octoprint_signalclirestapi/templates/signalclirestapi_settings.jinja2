@@ -35,7 +35,7 @@
 	</div>
 	<div class="content">
 		<h4>Connection</h4>
-
+		<p>After configuring the connections settings, <i>test</i> them to start chatting with your new bot.  Additionally, asking it for <i>help</i> is a great conversation starter.</p>
 		<form class="form-horizontal">
 			<div class="control-group">
 				<div class="control-group" title="{{ _('Enable Notifications') }}">
@@ -69,9 +69,10 @@
 				</div>
 
 				<div class="control-group" title="{{ _('Recipients') }}">
-					<label class="control-label">{{ _('Recipients (use comma to specify multiple recipients)') }}</label>
+					<label class="control-label">{{ _('Recipients') }}</label>
 					<div class="controls">
 						<input type="text" style="width: 400px" class="input-block-level" data-bind="value: settings.plugins.signalclirestapi.recipientnrs" id="recipientsInput">
+						<br>* Use commas to specify multiple recipients
 					</div>
 				</div>
 				
@@ -95,7 +96,7 @@
 						</label>
 					</div>
 				</div>
-				<p>Supported Tags: <code>{user}</code>, <code>{host}</code>, <code>{filename}</code>, <code>{state}</code>, <code>{progress}</code>, <code>{tool_temp_actual}</code>, <code>{tool_temp_target}</code>, <code>{bed_temp_actual}</code>, <code>{bed_temp_target}</code>, <code>{chamber_temp_actual}</code>, <code>{chamber_temp_target}</code>, <code>{new_line}</code>, <code>{degrees}</code></p>
+				<p>Supported Tags: <code>{user}</code>, <code>{host}</code>, <code>{filename}</code>, <code>{state}</code>, <code>{progress}</code>, <code>{reason}</code>, <code>{tool_temp_actual}</code>, <code>{tool_temp_target}</code>, <code>{bed_temp_actual}</code>, <code>{bed_temp_target}</code>, <code>{chamber_temp_actual}</code>, <code>{chamber_temp_target}</code>, <code>{new_line}</code>, <code>{degrees}</code></p>
 				<div class="control-group" title="{{ _('Body:') }}">
 					<label class="control-label">{{ _('Body:') }}</label>
 					<div class="controls">
@@ -115,7 +116,7 @@
 						</label>
 					</div>
 				</div>
-				<p>Supported Tags: <code>{user}</code>, <code>{host}</code>, <code>{filename}</code>, <code>{state}</code>, <code>{progress}</code>, <code>{tool_temp_actual}</code>, <code>{tool_temp_target}</code>, <code>{bed_temp_actual}</code>, <code>{bed_temp_target}</code>, <code>{chamber_temp_actual}</code>, <code>{chamber_temp_target}</code>, <code>{new_line}</code>, <code>{degrees}</code></p>
+				<p>Supported Tags: <code>{user}</code>, <code>{host}</code>, <code>{filename}</code>, <code>{state}</code>, <code>{progress}</code>, <code>{reason}</code>, <code>{tool_temp_actual}</code>, <code>{tool_temp_target}</code>, <code>{bed_temp_actual}</code>, <code>{bed_temp_target}</code>, <code>{chamber_temp_actual}</code>, <code>{chamber_temp_target}</code>, <code>{new_line}</code>, <code>{degrees}</code></p>
 				<div class="control-group" title="{{ _('Body:') }}">
 					<label class="control-label">{{ _('Body:') }}</label>
 					<div class="controls">
@@ -135,7 +136,7 @@
 						</label>
 					</div>
 				</div>
-				<p>Supported Tags: <code>{user}</code>, <code>{host}</code>, <code>{filename}</code>, <code>{state}</code>, <code>{progress}</code>, <code>{tool_temp_actual}</code>, <code>{tool_temp_target}</code>, <code>{bed_temp_actual}</code>, <code>{bed_temp_target}</code>, <code>{chamber_temp_actual}</code>, <code>{chamber_temp_target}</code>, <code>{new_line}</code>, <code>{degrees}</code></p>
+				<p>Supported Tags: <code>{user}</code>, <code>{host}</code>, <code>{filename}</code>, <code>{state}</code>, <code>{progress}</code>, <code>{reason}</code>, <code>{tool_temp_actual}</code>, <code>{tool_temp_target}</code>, <code>{bed_temp_actual}</code>, <code>{bed_temp_target}</code>, <code>{chamber_temp_actual}</code>, <code>{chamber_temp_target}</code>, <code>{new_line}</code>, <code>{degrees}</code></p>
 				<div class="control-group" title="{{ _('Body:') }}">
 					<label class="control-label">{{ _('Body:') }}</label>
 					<div class="controls">
@@ -155,7 +156,7 @@
 						</label>
 					</div>
 				</div>
-				<p>Supported Tags: <code>{user}</code>, <code>{host}</code>, <code>{filename}</code>, <code>{state}</code>, <code>{progress}</code>, <code>{tool_temp_actual}</code>, <code>{tool_temp_target}</code>, <code>{bed_temp_actual}</code>, <code>{bed_temp_target}</code>, <code>{chamber_temp_actual}</code>, <code>{chamber_temp_target}</code>, <code>{new_line}</code>, <code>{degrees}</code></p>
+				<p>Supported Tags: <code>{user}</code>, <code>{host}</code>, <code>{filename}</code>, <code>{state}</code>, <code>{progress}</code>, <code>{reason}</code>, <code>{tool_temp_actual}</code>, <code>{tool_temp_target}</code>, <code>{bed_temp_actual}</code>, <code>{bed_temp_target}</code>, <code>{chamber_temp_actual}</code>, <code>{chamber_temp_target}</code>, <code>{new_line}</code>, <code>{degrees}</code></p>
 				<div class="control-group" title="{{ _('Body:') }}">
 					<label class="control-label">{{ _('Body:') }}</label>
 					<div class="controls">
@@ -175,7 +176,7 @@
 										</label>
 								</div>
 						</div>
-						<p>Supported Tags: <code>{user}</code>, <code>{host}</code>, <code>{filename}</code>, <code>{state}</code>, <code>{progress}</code>, <code>{tool_temp_actual}</code>, <code>{tool_temp_target}</code>, <code>{bed_temp_actual}</code>, <code>{bed_temp_target}</code>, <code>{chamber_temp_actual}</code>, <code>{chamber_temp_target}</code>, <code>{new_line}</code>, <code>{degrees}</code></p>
+						<p>Supported Tags: <code>{user}</code>, <code>{host}</code>, <code>{filename}</code>, <code>{state}</code>, <code>{progress}</code>, <code>{reason}</code>, <code>{tool_temp_actual}</code>, <code>{tool_temp_target}</code>, <code>{bed_temp_actual}</code>, <code>{bed_temp_target}</code>, <code>{chamber_temp_actual}</code>, <code>{chamber_temp_target}</code>, <code>{new_line}</code>, <code>{degrees}</code></p>
 						<div class="control-group" title="{{ _('Body:') }}">
 								<label class="control-label">{{ _('Body:') }}</label>
 								<div class="controls">
@@ -195,7 +196,7 @@
 						</label>
 					</div>
 				</div>
-				<p>Supported Tags: <code>{user}</code>, <code>{host}</code>, <code>{filename}</code>, <code>{state}</code>, <code>{progress}</code>, <code>{tool_temp_actual}</code>, <code>{tool_temp_target}</code>, <code>{bed_temp_actual}</code>, <code>{bed_temp_target}</code>, <code>{chamber_temp_actual}</code>, <code>{chamber_temp_target}</code>, <code>{new_line}</code>, <code>{degrees}</code></p>
+				<p>Supported Tags: <code>{user}</code>, <code>{host}</code>, <code>{filename}</code>, <code>{state}</code>, <code>{progress}</code>, <code>{reason}</code>, <code>{tool_temp_actual}</code>, <code>{tool_temp_target}</code>, <code>{bed_temp_actual}</code>, <code>{bed_temp_target}</code>, <code>{chamber_temp_actual}</code>, <code>{chamber_temp_target}</code>, <code>{new_line}</code>, <code>{degrees}</code></p>
 				<div class="control-group" title="{{ _('Body:') }}">
 					<label class="control-label">{{ _('Body:') }}</label>
 					<div class="controls">
@@ -215,7 +216,7 @@
 						</label>
 					</div>
 				</div>
-				<p>Supported Tags: <code>{user}</code>, <code>{host}</code>, <code>{filename}</code>, <code>{state}</code>, <code>{progress}</code>, <code>{tool_temp_actual}</code>, <code>{tool_temp_target}</code>, <code>{bed_temp_actual}</code>, <code>{bed_temp_target}</code>, <code>{chamber_temp_actual}</code>, <code>{chamber_temp_target}</code>, <code>{new_line}</code>, <code>{degrees}</code></p>
+				<p>Supported Tags: <code>{user}</code>, <code>{host}</code>, <code>{filename}</code>, <code>{state}</code>, <code>{progress}</code>, <code>{reason}</code>, <code>{tool_temp_actual}</code>, <code>{tool_temp_target}</code>, <code>{bed_temp_actual}</code>, <code>{bed_temp_target}</code>, <code>{chamber_temp_actual}</code>, <code>{chamber_temp_target}</code>, <code>{new_line}</code>, <code>{degrees}</code></p>
 				<div class="control-group" title="{{ _('Body:') }}">
 					<label class="control-label">{{ _('Body:') }}</label>
 					<div class="controls">
@@ -235,6 +236,53 @@
 						</label>
 					</div>
 				</div>
+			<!-- ko if: settings.plugins.signalclirestapi.attachsnapshots() > ""  -->
+				<div class="control-group" title="{{ _('Attach Snapshot as Animated GIF') }}">
+					<div class="controls">
+						<label class="checkbox">
+							<input type="checkbox" data-bind="checked: settings.plugins.signalclirestapi.snapshotasgif" id="attachSnapshotsInput" /> {{ _('Attach Snapshot as Animated GIF for Status / Progress Messages') }}
+						</label>
+					<!-- ko if: settings.plugins.signalclirestapi.snapshotasgif() > ""  -->
+						<div class="control-group">
+							<table>
+								<tr>
+									<td align="right" style="padding: 0px 10px 10px 10px;">
+										{{ _('Duration') }}
+									</td>
+									<td>
+										<input type="text" class="input-mini" data-bind="value: settings.plugins.signalclirestapi.gifduration"> seconds
+									</td>
+								</tr>
+								<tr>
+									<td align="right" style="padding: 0px 10px 10px 10px;">
+										{{ _('Framerate') }}
+									</td>
+									<td>
+										<input type="text" class="input-mini" data-bind="value: settings.plugins.signalclirestapi.gifframerate"> fps
+									</td>
+								</tr>
+								<tr>
+									<td valign="middle" align="right" style="padding: 0px 10px 0px 10px;">
+										<label class="control-label">{{ _('Resolution') }}</label>
+									</td>
+									<td>
+										<label class="checkbox">
+											<input type="radio" name="gifResolution" value="480p" style="transform: translate(0px,-4px);" data-bind="checked: settings.plugins.signalclirestapi.gifresolution" /> {{ _('480p') }}
+										</label>
+										<label class="checkbox">
+											<input type="radio" name="gifResolution" value="720p" style="transform: translate(0px,-4px);" data-bind="checked: settings.plugins.signalclirestapi.gifresolution" /> {{ _('720p') }}
+										</label>
+										<label class="checkbox">
+											<input type="radio" name="gifResolution" value="1080p" style="transform: translate(0px,-4px);" data-bind="checked: settings.plugins.signalclirestapi.gifresolution" /> {{ _('1080p') }}
+										</label>
+									</td>
+								</tr>
+							</table>
+						</div>
+					<!-- /ko -->
+					</div>
+				</div>
+			<!-- /ko -->
 			</div>
 		</form>
 		
@@ -260,7 +308,8 @@
 
 		<h4>Status Reporting</h4>
 		<p>Manage job progress and on-demand status reports</p>
-		<form class="form horizontal">	
+
+		<form class="form horizontal">
 			<div class="control-group">
 				<div class="control-group" title="{{ _('Send Print Progress') }}">
 					<div class="controls">
@@ -271,7 +320,7 @@
 						<input type="text" class="input-mini" style="width: 200px" data-bind="value: settings.plugins.signalclirestapi.progressintervals">
 					</div>
 				</div>
-				<p>Supported Tags: <code>{user}</code>, <code>{host}</code>, <code>{filename}</code>, <code>{state}</code>, <code>{progress}</code>, <code>{tool_temp_actual}</code>, <code>{tool_temp_target}</code>, <code>{bed_temp_actual}</code>, <code>{bed_temp_target}</code>, <code>{chamber_temp_actual}</code>, <code>{chamber_temp_target}</code>, <code>{new_line}</code>, <code>{degrees}</code></p>
+				<p>Supported Tags: <code>{user}</code>, <code>{host}</code>, <code>{filename}</code>, <code>{state}</code>, <code>{progress}</code>, <code>{reason}</code>, <code>{tool_temp_actual}</code>, <code>{tool_temp_target}</code>, <code>{bed_temp_actual}</code>, <code>{bed_temp_target}</code>, <code>{chamber_temp_actual}</code>, <code>{chamber_temp_target}</code>, <code>{new_line}</code>, <code>{degrees}</code></p>
 				<div class="control-group" title="{{ _('Body:') }}">
 					<label class="control-label">{{ _('Body:') }}</label>
 					<div class="controls">
@@ -279,15 +328,13 @@
 					</div>
 				</div>
 			</div>
-		</form>
 		<hr/>
 
-		<form class="form horizontal">	
 			<div class="control-group">
 				<p>
 					{{ _('Status Report (on demand)') }}
 				</p>
-				<p>Supported Tags: <code>{user}</code>, <code>{host}</code>, <code>{filename}</code>, <code>{state}</code>, <code>{progress}</code>, <code>{tool_temp_actual}</code>, <code>{tool_temp_target}</code>, <code>{bed_temp_actual}</code>, <code>{bed_temp_target}</code>, <code>{chamber_temp_actual}</code>, <code>{chamber_temp_target}</code>, <code>{new_line}</code>, <code>{degrees}</code></p>
+				<p>Supported Tags: <code>{user}</code>, <code>{host}</code>, <code>{filename}</code>, <code>{state}</code>, <code>{progress}</code>, <code>{reason}</code>, <code>{tool_temp_actual}</code>, <code>{tool_temp_target}</code>, <code>{bed_temp_actual}</code>, <code>{bed_temp_target}</code>, <code>{chamber_temp_actual}</code>, <code>{chamber_temp_target}</code>, <code>{new_line}</code>, <code>{degrees}</code></p>
 				<div class="control-group" title="{{ _('Body:') }}">
 					<label class="control-label">{{ _('Body:') }}</label>
 					<div class="controls">
