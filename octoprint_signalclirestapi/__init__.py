@@ -116,17 +116,24 @@ class ReceiveThread(threading.Thread):
 
                     for msg in msgs:
                         message = None
+                        sourceNumber = None
                         groupId = None
 
-                        if "envelope" in msg.keys() and "dataMessage" in msg["envelope"].keys():
+                        # only process data messages with a source number matching our known recipients
+                        if "envelope" in msg.keys() and "dataMessage" in msg["envelope"].keys() and "sourceNumber" in msg["envelope"].keys():
+                            # DO NOT proceed if we do not know this sender
+                            sourceNumber = msg["envelope"]["sourceNumber"]
+                            if not sourceNumber or not sourceNumber in self._plugin.recipients:
+                                self._plugin._logger.warn("ReceiveThread: ignoring message from unknown sender [{}]".format(sourceNumber))
+                                continue
+
                             dataMsg = msg["envelope"]["dataMessage"]
                             if "message" in dataMsg.keys(): message = dataMsg["message"]
-
                             # only process a message if it isn't empty
                             if message: 
                                 message = message.strip() 
                             else: 
-                                self._plugin._logger.debug("ReceiveThread: dropping empty message")
+                                self._plugin._logger.debug("ReceiveThread: dropping empty message from [{}]".format(sourceNumber))
                                 continue
 
                             # set the group id if the message is from one
@@ -134,7 +141,7 @@ class ReceiveThread(threading.Thread):
 
                             # we only want to respond to messages meant for us
                             if groupId is None or groupId == self._plugin._group_id["internal_id"]:
-                                self._plugin._logger.debug("ReceiveThread: message=[{}] group=[{}]".format(message, groupId)) 
+                                self._plugin._logger.debug("ReceiveThread: message=[{}] group=[{}] sourceNumber=[{}]".format(message, groupId, sourceNumber)) 
 
                                 # display a help message if we receive something we do not understand
                                 command = "" if message is None else message.split(" ")[0]
@@ -177,7 +184,7 @@ class ReceiveThread(threading.Thread):
                                     cmd = self._plugin._settings.global_get(["server", "commands", "systemRestartCommand"])
                                     subprocess.call(cmd, shell=True)
                             else:
-                                self._plugin._logger.debug("signal_receive_thread dropping message [{}]".format("message"))
+                                self._plugin._logger.debug("signal_receive_thread dropping message [{}] from [{}]".format(message, sourceNumber))
             except BaseException as e:
                 if self._plugin:
                     self._plugin._logger.warn("ReceiveThread: main loop exception: [{}]".format(e))
