@@ -24,6 +24,7 @@ import subprocess
 import websocket
 import json
 import os
+import requests
 #
 # register a new device
 # signal-cli --config /home/.local/share/signal-cli  -a ACCOUNT register --voice
@@ -205,6 +206,7 @@ def verify_connection_settings(url, sender_nr, recipients):
 def defer_send_message(_plugin, message, snapshot, snapshot_as_gif):
     try:
         _plugin._logger.debug("defer_send_message: preparing message")
+
         recipients = _plugin.recipients
 
         # check group settings and set group id if applicible 
@@ -221,6 +223,10 @@ def defer_send_message(_plugin, message, snapshot, snapshot_as_gif):
             else:
                 recipients = [_plugin._group_id["id"]]
 
+        # typing indicator - turn on
+        for recipient in recipients:
+            requests.put(_plugin.url + "/v1/typing-indicator/" + _plugin.sender, json={"recipient": recipient})
+
         snapshot_filenames = []
         if _plugin.attach_snapshots and snapshot:
             try:
@@ -233,7 +239,17 @@ def defer_send_message(_plugin, message, snapshot, snapshot_as_gif):
                 _plugin._logger.exception("Could not get webcam image...sending without it: [{}]".format(e))
 
         _plugin._logger.debug("defer_send_message: sending message")
+
+        # typing indicator - turn on again
+        for recipient in recipients:
+            requests.put(_plugin.url + "/v1/typing-indicator/" + _plugin.sender, json={"recipient": recipient})
+
         send_message(_plugin.url, _plugin.sender, message, recipients, snapshot_filenames)
+
+        # typing indicator - turn off
+        for recipient in recipients:
+            requests.delete(_plugin.url + "/v1/typing-indicator/" + _plugin.sender, json={"recipient": recipient})
+
         _plugin._logger.debug("defer_send_message: messge sent")
     except BaseException as e:
         if "Group not found" in str(e):
