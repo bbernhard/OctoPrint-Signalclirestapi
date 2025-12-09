@@ -106,10 +106,16 @@ class ReceiveThread(threading.Thread):
                         mode = self._api.mode()
 
                     # use a websocket if json-rpc is enabled
-                    if not self._websocket and mode == "json-rpc":
-                        self._websocket = websocket.create_connection(self._plugin.url.replace("http://", "ws://") + "/v1/receive/" + self._plugin.sender)
-
                     if mode == "json-rpc":
+                        if not self._websocket:
+                            # build a proper ws/wss URL from the configured plugin URL
+                            if self._plugin.url.lower().startswith("https://"):
+                                ws_url = self._plugin.url.replace("https://", "wss://", 1).rstrip('/')
+                            else:
+                                ws_url = self._plugin.url.replace("http://", "ws://", 1).rstrip('/')
+                            ws_url = ws_url + "/v1/receive/" + self._plugin.sender
+                            self._websocket = websocket.create_connection(ws_url)
+
                         msgs = [ json.loads(self._websocket.recv()) ]
                     else:
                         msgs = receive_message(self._plugin.url, self._plugin.sender)
