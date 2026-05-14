@@ -74,7 +74,8 @@ class ReceiveThread(threading.Thread):
         finally:
             self._websocket = None
             self._api = None
-            if releasePlugin: self._plugin = None
+            if releasePlugin:
+                self._plugin = None
         
     def run(self):
         valid_commands = ("STATUS", "PAUSE", "RESUME", "CANCEL", "GCODE", "TOOL", "BED", "CHAMBER", "CONNECT", "DISCONNECT", "SHELL", "STOP", "RESTART", "SHUTDOWN", "REBOOT")
@@ -129,12 +130,13 @@ class ReceiveThread(threading.Thread):
                         if "envelope" in msg.keys() and "dataMessage" in msg["envelope"].keys() and "sourceNumber" in msg["envelope"].keys():
                             # DO NOT proceed if we do not know this sender
                             sourceNumber = msg["envelope"]["sourceNumber"]
-                            if not sourceNumber or not sourceNumber in self._plugin.recipients:
+                            if not sourceNumber or sourceNumber not in self._plugin.recipients:
                                 self._plugin._logger.warn("ReceiveThread: ignoring message from unknown sender [{}]".format(sourceNumber))
                                 continue
 
                             dataMsg = msg["envelope"]["dataMessage"]
-                            if "message" in dataMsg.keys(): message = dataMsg["message"]
+                            if "message" in dataMsg.keys():
+                                message = dataMsg["message"]
                             # only process a message if it isn't empty
                             if message: 
                                 message = message.strip() 
@@ -143,7 +145,8 @@ class ReceiveThread(threading.Thread):
                                 continue
 
                             # set the group id if the message is from one
-                            if "groupInfo" in dataMsg.keys() and "groupId" in dataMsg["groupInfo"].keys(): groupId = dataMsg["groupInfo"]["groupId"]
+                            if "groupInfo" in dataMsg.keys() and "groupId" in dataMsg["groupInfo"].keys():
+                                groupId = dataMsg["groupInfo"]["groupId"]
 
                             # we only want to respond to messages meant for us
                             if groupId is None or groupId == self._plugin._group_id["internal_id"]:
@@ -205,7 +208,8 @@ class ReceiveThread(threading.Thread):
 
 # MODE = normal receive only (do not use this for json-rpc)
 def receive_message(url, sender_nr):
-    if url is None or sender_nr is None or len(url) == 0 or len(sender_nr) == 0: return
+    if url is None or sender_nr is None or len(url) == 0 or len(sender_nr) == 0:
+        return
     return SignalCliRestApi(url, sender_nr).receive()
 
 def verify_connection_settings(url, sender_nr, recipients):
@@ -247,7 +251,8 @@ def defer_send_message(_plugin, message, snapshot, snapshot_as_gif):
                     snapshot_filenames.append(get_webcam_snapshot(_plugin.snapshot_url))
                 else:
                     gif = get_webcam_animated_gif(_plugin)
-                    if gif: snapshot_filenames.append(gif)
+                    if gif:
+                        snapshot_filenames.append(gif)
             except BaseException as e:
                 _plugin._logger.exception("Could not get webcam image...sending without it: [{}]".format(e))
 
@@ -275,7 +280,7 @@ def defer_send_message(_plugin, message, snapshot, snapshot_as_gif):
                 send_message(_plugin.url, _plugin.sender, message, _plugin.recipients, snapshot_filenames)
                 _plugin._logger.debug("defer_send_message: messge sent")
             except BaseException as e:
-                _plugin._logger.exception("Could not send signal message after clearing group_id: []".format(e))    
+                _plugin._logger.exception("Could not send signal message after clearing group_id: [{}]".format(e))
         else:
             _plugin._logger.exception("Could not send signal message: [{}]".format(e))    
     finally:
@@ -306,7 +311,8 @@ def get_webcam_snapshot(snapshot_url):
 # https://github.com/fabianonline/OctoPrint-Telegram
 def get_webcam_animated_gif(_plugin):
     path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "static", "gifcache")
-    if not os.path.exists(path): os.mkdir(path)
+    if not os.path.exists(path):
+        os.mkdir(path)
 
     filename = "stream-" + str(time.time()) + ".gif"
     fullpath = os.path.join(path, filename)
@@ -422,7 +428,7 @@ class SignalclirestapiPlugin(octoprint.plugin.SettingsPlugin,
         self._logger.debug("__init__: on_settings_migrate target=[{}] current=[{}]".format(target, current))
 
         # version 1 migration
-        if current == None or current == 1:
+        if current is None or current == 1:
             if self._settings.get_boolean(["creategroupbyprinter"]):
                 self._settings.set(["groupsettings"], "machine" )
             elif self._settings.get_boolean(["creategroupforeveryprint"]):
@@ -434,7 +440,7 @@ class SignalclirestapiPlugin(octoprint.plugin.SettingsPlugin,
             self._settings.remove(["creategroupbyprinter"])
             
         self._settings.save()
-        self._logger.info("Migrated to settings v%d from v%d", target, 1 if current == None else current)
+        self._logger.info("Migrated to settings v%d from v%d", target, 1 if current is None else current)
 
     def on_settings_save(self, data):
         octoprint.plugin.SettingsPlugin.on_settings_save(self, data)
@@ -537,7 +543,8 @@ class SignalclirestapiPlugin(octoprint.plugin.SettingsPlugin,
     @property
     def stream_url(self):
         url = self._settings.global_get(["webcam", "stream"])
-        if not url.startswith("http"): url = "http://localhost" + url
+        if not url.startswith("http"):
+            url = "http://localhost" + url
         return url
     
     @property
@@ -628,14 +635,16 @@ class SignalclirestapiPlugin(octoprint.plugin.SettingsPlugin,
         # special cases for PRINT_STARTED, STARTUP, and SHUTDOWN
         if event == Events.PRINT_STARTED:
             self._supported_tags["progress"] = 0
-            if self.create_group_for_every_print: self._group_id = None 
+            if self.create_group_for_every_print:
+                self._group_id = None
             if self.enabled and self.print_started_event:
                 message = self.print_started_event_template.format(**self._supported_tags) 
                 self._send_message(message) 
             return
         elif event == Events.STARTUP:
             self._printer_group_id = self._settings.get(["printergroupid"])
-            if not self._printer_group_id: self._printer_group_id = None
+            if not self._printer_group_id:
+                self._printer_group_id = None
 
             self._receiveThread = ReceiveThread()
             self._receiveThread.daemon = True
@@ -712,7 +721,7 @@ class SignalclirestapiPlugin(octoprint.plugin.SettingsPlugin,
             self._send_message(message, snapshot_as_gif=self.snapshot_as_gif)
 
     def get_api_commands(self):
-        return dict(testMessage=["sender", "recipients", "url"]);
+        return dict(testMessage=["sender", "recipients", "url"])
 
     def on_api_command(self, command, data): 
         if command == "testMessage":
@@ -739,7 +748,7 @@ class SignalclirestapiPlugin(octoprint.plugin.SettingsPlugin,
                     snapshot_url = self._settings.global_get(["webcam", "snapshot"])
                     try:
                         snapshot_filenames.append(get_webcam_snapshot(snapshot_url))
-                    except Exception as e:
+                    except Exception:
                         message = "Hello from OctoPrint.\nThere should be a webcam image attached, but your camera seems to be not working. Please check your camera!"
                         self._logger.exception("Sending test message. Couldn't get webcam image...sending without it")
 
