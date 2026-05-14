@@ -788,6 +788,9 @@ class SignalclirestapiPlugin(octoprint.plugin.SettingsPlugin,
         return [
             dict(type="settings", name="Signal Notifications", custom_bindings=False)
         ]
+        
+    def is_template_autoescaped(self):
+        return True
 
     # ~~ AssetPlugin mixin
 
