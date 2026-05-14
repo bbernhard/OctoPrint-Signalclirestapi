@@ -720,6 +720,9 @@ class SignalclirestapiPlugin(octoprint.plugin.SettingsPlugin,
             message = self.send_status_report_template.format(**tags)
             self._send_message(message, snapshot_as_gif=self.snapshot_as_gif)
 
+    def is_api_protected(self):
+        return True
+
     def get_api_commands(self):
         return dict(testMessage=["sender", "recipients", "url"])
 
