@@ -4,6 +4,7 @@ from __future__ import absolute_import
 
 import octoprint.plugin
 import octoprint.util
+from octoprint.access.permissions import Permissions
 from octoprint.events import Events
 
 import flask
@@ -726,7 +727,10 @@ class SignalclirestapiPlugin(octoprint.plugin.SettingsPlugin,
     def get_api_commands(self):
         return dict(testMessage=["sender", "recipients", "url"])
 
-    def on_api_command(self, command, data): 
+    def on_api_command(self, command, data):
+        if not Permissions.SETTINGS.can():
+            return flask.make_response("Insufficient rights", 403)
+        
         if command == "testMessage":
             self._logger.debug(data)
             
