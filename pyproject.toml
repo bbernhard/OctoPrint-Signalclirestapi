@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "Signal-Notifications"
-version = "0.2.1"
+version = "0.2.2"
 description = "Signal Notifications."
 authors = [
     { name = "Bernhard B.", email = "bernhard@liftingcoder.com" },
