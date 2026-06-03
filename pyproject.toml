@@ -1,0 +1,44 @@
+[build-system]
+requires = [
+    "setuptools>=68",
+]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "Signal-Notifications"
+version = "0.2.1"
+description = "Signal Notifications."
+authors = [
+    { name = "Bernhard B.", email = "bernhard@liftingcoder.com" },
+]
+requires-python = ">=2.7,<4"
+dependencies = [
+    "pysignalclirestapi==0.3.15",
+]
+dynamic = [
+    "license",
+]
+
+[project.entry-points."octoprint.plugin"]
+signalclirestapi = "octoprint_signalclirestapi"
+
+[project.urls]
+Homepage = "https://github.com/bbernhard/OctoPrint-Signalclirestapi"
+
+[project.optional-dependencies]
+develop = [
+    "go-task-bin",
+]
+
+[project.readme]
+file = "README.md"
+content-type = "text/markdown"
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.packages.find]
+include = [
+    "octoprint_signalclirestapi",
+    "octoprint_signalclirestapi.*",
+]
